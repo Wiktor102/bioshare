@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import "common/custom_input_decoration.dart";
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  final Function() goToSignup;
+  const LoginPage(this.goToSignup, {Key? key}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -69,11 +71,6 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    //   Image.asset(
-                    //     'assets/images/logo_new.png',
-                    //     height: 120,
-                    //     width: 120,
-                    //   ),
                     const Text(
                       'Zaloguj się',
                       style: TextStyle(
@@ -82,12 +79,13 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding:
+                          const EdgeInsets.only(left: 10, right: 10, top: 5),
                       child: Text(
-                        'By korzystać z naszej aplikacji musisz być zalogowany',
+                        'By korzystać z naszej aplikacji, musisz być zalogowany',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withOpacity(0.7),
                           fontWeight: FontWeight.w300,
                           fontSize: 15,
                         ),
@@ -110,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                               onChanged: onEmailChanged,
                               decoration: CustomInputDecoration(
                                 context,
-                                labelText: "Email",
+                                labelText: "E-mail",
                                 hintText: 'Wpisz swój adres e-mail',
                                 prefixIcon: Icon(
                                   Icons.person,
@@ -126,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                               obscuringCharacter: '*',
                               decoration: CustomInputDecoration(
                                 context,
-                                labelText: "Password",
+                                labelText: "Hasło",
                                 hintText: 'Wpisz swoje hasło',
                                 prefixIcon: Icon(
                                   Icons.lock,
@@ -178,7 +176,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: widget.goToSignup,
                           child: const Text(
                             'Załóż je',
                             style: TextStyle(fontWeight: FontWeight.w500),
@@ -195,32 +193,6 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-}
-
-class CustomInputDecoration extends InputDecoration {
-  CustomInputDecoration(context,
-      {Icon? prefixIcon, String? labelText, String? hintText})
-      : super(
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.all(
-                Radius.circular(10),
-              ),
-            ),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.all(
-                Radius.circular(10),
-              ),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            labelStyle: TextStyle(
-              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-            ),
-            prefixIcon: prefixIcon,
-            labelText: labelText,
-            hintText: hintText);
 }
 
 class Clipper extends CustomClipper<Path> {
