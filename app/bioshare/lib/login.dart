@@ -111,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                                 labelText: "E-mail",
                                 hintText: 'Wpisz swój adres e-mail',
                                 prefixIcon: Icon(
-                                  Icons.person,
+                                  Icons.email,
                                   color: Theme.of(context).primaryColor,
                                 ),
                               ),

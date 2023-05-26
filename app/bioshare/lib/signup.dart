@@ -98,7 +98,7 @@ class _SignupPageState extends State<SignupPage> {
                                 labelText: "Email",
                                 hintText: 'Podaj swój adres e-mail',
                                 prefixIcon: Icon(
-                                  Icons.person,
+                                  Icons.email,
                                   color: Theme.of(context).primaryColor,
                                 ),
                               ),

@@ -1,4 +1,4 @@
-#Thu May 25 21:51:58 CEST 2023
+#Fri May 26 19:28:35 CEST 2023
 base.0=D\:\\descop\\projekty\\2023\\bioshare\\app\\bioshare\\build\\app\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
 renamed.0=classes.dex
 path.0=classes.dex
