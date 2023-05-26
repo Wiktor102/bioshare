@@ -48,10 +48,14 @@ function createUser($mail, $passwordHash)
 
 	$stmt->bind_param("ss", $mail, $passwordHash);
 
-	if ($stmt->execute()) {
-		$_SESSION["userId"] = $stmt->insert_id;
-		http_response_code(200);
-	} else {
+	try {
+		if ($stmt->execute()) {
+			$_SESSION["userId"] = $stmt->insert_id;
+			http_response_code(200);
+		} else {
+			throw new Exception("");
+		}
+	} catch (Exception $e) {
 		if ($conn->errno === 1062) {
 			$msg = json_encode(
 				[
