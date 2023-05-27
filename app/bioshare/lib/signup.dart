@@ -1,9 +1,11 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import "common/custom_input_decoration.dart";
 import 'package:http/http.dart' as http;
+
 import 'package:flutter/foundation.dart';
+
+import "./utils/show_popup.dart";
+import "common/custom_input_decoration.dart";
 
 class SignupPage extends StatefulWidget {
   final Function() goToLogin;
@@ -90,7 +92,7 @@ class _SignupPageState extends State<SignupPage> {
 
       if (response.statusCode == 409) {
         if (!context.mounted) return;
-        _showPopup(context, "Wystąpił błąd", "Użytkownik o podanym adresie e-mail już istnieje.");
+        showPopup(context, "Wystąpił błąd", "Użytkownik o podanym adresie e-mail już istnieje.");
         return;
       }
 
@@ -102,33 +104,15 @@ class _SignupPageState extends State<SignupPage> {
 
       widget.goToLogin();
       if (!context.mounted) return;
-      _showPopup(context, "Rejestracja pomyślna", "Teraz możesz sie zalogować.");
+      showPopup(context, "Rejestracja pomyślna", "Teraz możesz sie zalogować.");
     } catch (e) {
-      _showPopup(context, "Wystąpił nieznany błąd", "Przepraszamy. Proszę spróbować później.");
+      showPopup(context, "Wystąpił nieznany błąd", "Przepraszamy. Proszę spróbować później.");
     }
 
     validateForm();
     setState(() {
       loading = false;
     });
-  }
-
-  void _showPopup(BuildContext context, String title, String? content) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: content == null ? null : Text(content),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Ok'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   validateForm() => _formKey.currentState!.validate();
