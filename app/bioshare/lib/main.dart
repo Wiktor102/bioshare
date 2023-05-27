@@ -32,7 +32,7 @@ class _AppState extends State<App> {
       return SignupPage(() => setView(View.loginView));
     }
 
-    return const AppStructure();
+    return AppStructure(() => setView(View.loginView));
   }
 
   @override
