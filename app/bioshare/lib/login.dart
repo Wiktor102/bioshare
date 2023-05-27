@@ -180,61 +180,65 @@ class _LoginPageState extends State<LoginPage> {
                           color: Colors.white.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                onSaved: (v) => email = v ?? "",
-                                decoration: CustomInputDecoration(
-                                  context,
-                                  labelText: "E-mail",
-                                  hintText: 'Wpisz swój adres e-mail',
-                                  prefixIcon: Icon(
-                                    Icons.email,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              TextFormField(
-                                obscureText: true,
-                                obscuringCharacter: '*',
-                                onSaved: (v) => password = v ?? "",
-                                decoration: CustomInputDecoration(
-                                  context,
-                                  labelText: "Hasło",
-                                  hintText: 'Wpisz swoje hasło',
-                                  prefixIcon: Icon(
-                                    Icons.lock,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10.0),
-                                        ),
-                                      ),
-                                      onPressed: () => onFormSubmitted(context),
-                                      child: const Text(
-                                        'Kontynuuj',
-                                        style: TextStyle(fontSize: 17),
-                                      ),
+                        child: AutofillGroup(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  autofillHints: const [AutofillHints.email],
+                                  onSaved: (v) => email = v ?? "",
+                                  decoration: CustomInputDecoration(
+                                    context,
+                                    labelText: "E-mail",
+                                    hintText: 'Wpisz swój adres e-mail',
+                                    prefixIcon: Icon(
+                                      Icons.email,
+                                      color: Theme.of(context).primaryColor,
                                     ),
                                   ),
-                                ],
-                              )
-                            ],
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                TextFormField(
+                                  autofillHints: const [AutofillHints.password],
+                                  obscureText: true,
+                                  obscuringCharacter: '*',
+                                  onSaved: (v) => password = v ?? "",
+                                  decoration: CustomInputDecoration(
+                                    context,
+                                    labelText: "Hasło",
+                                    hintText: 'Wpisz swoje hasło',
+                                    prefixIcon: Icon(
+                                      Icons.lock,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10.0),
+                                          ),
+                                        ),
+                                        onPressed: () => onFormSubmitted(context),
+                                        child: const Text(
+                                          'Kontynuuj',
+                                          style: TextStyle(fontSize: 17),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),

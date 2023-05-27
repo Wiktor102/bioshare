@@ -177,94 +177,97 @@ class _SignupPageState extends State<SignupPage> {
                           color: Colors.white.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                controller: _textEditingController,
-                                onSaved: (v) => email = v ?? "",
-                                validator: (v) => emailError,
-                                onChanged: (v) {
-                                  setState(() => emailError = null);
-                                  validateForm();
-                                },
-                                decoration: CustomInputDecoration(
-                                  context,
-                                  labelText: "Email",
-                                  hintText: 'Podaj swój adres e-mail',
-                                  prefixIcon: Icon(
-                                    Icons.email,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              TextFormField(
-                                obscureText: true,
-                                obscuringCharacter: '*',
-                                validator: (v) => passwordError,
-                                onSaved: (v) => password = v ?? "",
-                                onChanged: (v) {
-                                  setState(() => passwordError = null);
-                                  validateForm();
-                                },
-                                decoration: CustomInputDecoration(
-                                  context,
-                                  labelText: "Hasło",
-                                  hintText: 'Wymyśl silne hasło',
-                                  prefixIcon: Icon(
-                                    Icons.lock,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              TextFormField(
-                                obscureText: true,
-                                obscuringCharacter: '*',
-                                validator: (v) => password2Error,
-                                onSaved: (v) => password2 = v ?? "",
-                                onChanged: (v) {
-                                  setState(() => password2Error = null);
-                                  validateForm();
-                                },
-                                decoration: CustomInputDecoration(
-                                  context,
-                                  labelText: "Powtórz hasło",
-                                  hintText: 'Wpisz swoje hasło',
-                                  prefixIcon: Icon(
-                                    Icons.lock,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10.0),
-                                        ),
-                                      ),
-                                      onPressed: () => onFormSubmitted(context),
-                                      child: const Text(
-                                        'Kontynuuj',
-                                        style: TextStyle(fontSize: 17),
-                                      ),
+                        child: AutofillGroup(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  autofillHints: const [AutofillHints.newUsername],
+                                  onSaved: (v) => email = v ?? "",
+                                  validator: (v) => emailError,
+                                  onChanged: (v) {
+                                    setState(() => emailError = null);
+                                    validateForm();
+                                  },
+                                  decoration: CustomInputDecoration(
+                                    context,
+                                    labelText: "Email",
+                                    hintText: 'Podaj swój adres e-mail',
+                                    prefixIcon: Icon(
+                                      Icons.email,
+                                      color: Theme.of(context).primaryColor,
                                     ),
                                   ),
-                                ],
-                              )
-                            ],
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                TextFormField(
+                                  autofillHints: const [AutofillHints.newPassword],
+                                  obscureText: true,
+                                  obscuringCharacter: '*',
+                                  validator: (v) => passwordError,
+                                  onSaved: (v) => password = v ?? "",
+                                  onChanged: (v) {
+                                    setState(() => passwordError = null);
+                                    validateForm();
+                                  },
+                                  decoration: CustomInputDecoration(
+                                    context,
+                                    labelText: "Hasło",
+                                    hintText: 'Wymyśl silne hasło',
+                                    prefixIcon: Icon(
+                                      Icons.lock,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                TextFormField(
+                                  obscureText: true,
+                                  obscuringCharacter: '*',
+                                  validator: (v) => password2Error,
+                                  onSaved: (v) => password2 = v ?? "",
+                                  onChanged: (v) {
+                                    setState(() => password2Error = null);
+                                    validateForm();
+                                  },
+                                  decoration: CustomInputDecoration(
+                                    context,
+                                    labelText: "Powtórz hasło",
+                                    hintText: 'Wpisz swoje hasło',
+                                    prefixIcon: Icon(
+                                      Icons.lock,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10.0),
+                                          ),
+                                        ),
+                                        onPressed: () => onFormSubmitted(context),
+                                        child: const Text(
+                                          'Kontynuuj',
+                                          style: TextStyle(fontSize: 17),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),
