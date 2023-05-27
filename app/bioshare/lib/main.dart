@@ -1,15 +1,39 @@
 import "package:bioshare/signup.dart";
 import 'package:flutter/material.dart';
 
-import "./bottom_nav.dart";
+import 'app/app_structure.dart';
 import "./login.dart";
 
 void main() {
-  runApp(const MyApp());
+  runApp(const App());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+enum View { appView, loginView, signupView }
+
+class App extends StatefulWidget {
+  const App({super.key});
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  View currentView = View.loginView;
+
+  setView(View newView) {
+    setState(() => currentView = newView);
+  }
+
+  Widget getView() {
+    if (currentView == View.loginView) {
+      return LoginPage(() => setView(View.signupView), () => setView(View.appView));
+    }
+
+    if (currentView == View.signupView) {
+      return SignupPage(() => setView(View.loginView));
+    }
+
+    return const AppStructure();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,56 +45,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const App(),
-    );
-  }
-}
-
-class App extends StatefulWidget {
-  const App({super.key});
-  @override
-  State<App> createState() => _AppState();
-}
-
-enum View { AppView, LoginView, SignupView }
-
-class _AppState extends State<App> {
-  View currentView = View.LoginView;
-  int tabIndex = 0;
-  List titles = ["Lodówki w pobliżu", "Szukaj", "Moje lodówki"];
-  late List screens;
-
-  changeTab(int i) {
-    setState(() => tabIndex = i);
-  }
-
-  setView(View newView) {
-    setState(() => currentView = newView);
-  }
-
-  _AppState() {
-    screens = const [Text("Tab 1"), Text("Tab 2"), Text("Tab 3")];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (currentView == View.LoginView) {
-      return LoginPage(() => setView(View.SignupView), () => setView(View.AppView));
-    }
-
-    if (currentView == View.SignupView) {
-      return SignupPage(() => setView(View.LoginView));
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(titles[tabIndex]),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.account_circle))],
-        centerTitle: true,
-      ),
-      body: screens[tabIndex],
-      bottomNavigationBar: BottomNav(tabIndex: tabIndex, changeTab: changeTab),
+      home: getView(),
     );
   }
 }
