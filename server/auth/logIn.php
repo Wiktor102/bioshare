@@ -19,6 +19,7 @@ function main()
 	$passwordCorrect = password_verify($credentials["password"], $correctPasswordHash);
 
 	if (!$passwordCorrect) {
+		http_response_code(404);
 		exit(
 			json_encode(
 				[

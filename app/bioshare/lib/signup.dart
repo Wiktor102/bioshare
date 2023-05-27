@@ -36,6 +36,7 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void onFormSubmitted(BuildContext context) async {
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       loading = true;
     });

@@ -1,3 +1,4 @@
+import "package:bioshare/common/full_screen_loader.dart";
 import "package:bioshare/signup.dart";
 import 'package:flutter/material.dart';
 
@@ -55,7 +56,7 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     if (currentView == View.LoginView) {
-      return LoginPage(() => setView(View.SignupView));
+      return LoginPage(() => setView(View.SignupView), () => setView(View.AppView));
     }
 
     if (currentView == View.SignupView) {
@@ -66,9 +67,7 @@ class _AppState extends State<App> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(titles[tabIndex]),
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.account_circle))
-        ],
+        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.account_circle))],
         centerTitle: true,
       ),
       body: screens[tabIndex],
