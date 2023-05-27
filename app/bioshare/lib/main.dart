@@ -1,4 +1,3 @@
-import "package:bioshare/common/full_screen_loader.dart";
 import "package:bioshare/signup.dart";
 import 'package:flutter/material.dart';
 
