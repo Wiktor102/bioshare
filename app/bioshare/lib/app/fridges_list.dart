@@ -4,9 +4,9 @@ import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import './fridge_details.dart';
 import '../common/app_background.dart';
 
-class NearbyFridges extends StatelessWidget {
+class FridgesList extends StatelessWidget {
   final Function() goToLogin;
-  const NearbyFridges({required this.goToLogin, super.key});
+  const FridgesList({required this.goToLogin, super.key});
 
   @override
   Widget build(BuildContext context) {

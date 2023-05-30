@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import './nearby_fridges.dart';
+import './fridges_list.dart';
 import './app_bar.dart';
 import "./bottom_nav.dart";
 
@@ -21,7 +21,7 @@ class _AppStructureState extends State<AppStructure> {
   initState() {
     super.initState();
     screens = [
-      NearbyFridges(goToLogin: widget.goToLogin),
+      FridgesList(goToLogin: widget.goToLogin),
       const Text("Tab 2"),
       const Text("Tab 3"),
     ];
