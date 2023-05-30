@@ -1,17 +1,35 @@
-import "package:bioshare/signup.dart";
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 
 import 'app/app_structure.dart';
+import "./signup.dart";
 import "./login.dart";
 
+import './models/fridge_model.dart';
+
 void main() {
-  runApp(const App());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => FridgeModel()),
+      ],
+      child: const App(),
+    ),
+  );
 }
 
 enum View { appView, loginView, signupView }
 
 class App extends StatefulWidget {
+  static var secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
+
   const App({super.key});
+
   @override
   State<App> createState() => _AppState();
 }

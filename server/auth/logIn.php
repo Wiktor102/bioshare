@@ -1,6 +1,8 @@
 <?php
 session_start();
 // require_once "../validateRequest.php"; To będzie w przyszłości do sprawdzania czy zapytanie naprawdę pochodzi z naszej aplikacji
+use Firebase\JWT\JWT;
+require_once "../vendor/autoload.php";
 require_once "../connect.php";
 // require_once "./sendEmail.php";
 
@@ -33,7 +35,8 @@ function main()
 	// W przyszłości tutaj sprawdzać czy e-mail jest zweryfikowany
 
 	$_SESSION["userId"] = $userData["id"];
-	exit(json_encode(["userId" => $_SESSION["userId"]]));
+
+	exit(json_encode(generateToken($userData["id"])));
 }
 
 function getUserData($mail)
@@ -86,6 +89,22 @@ function getUserData($mail)
 		http_response_code(500);
 		exit($msg);
 	}
+}
+
+function generateToken($user_id)
+{
+	$jwtSecretKey = file_get_contents("./.jwt-secret");
+	$expirationTime = time() + 60 * 60; // 1 hour
+	$payload = [
+		"user_id" => $user_id,
+		"exp" => $expirationTime,
+	];
+
+	$jwt = JWT::encode($payload, $jwtSecretKey, "HS256");
+	return [
+		"token" => $jwt,
+		"expiration" => $expirationTime,
+	];
 }
 
 main();

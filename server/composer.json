@@ -1,0 +1,12 @@
+{
+    "name": "bioshare/api",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Wiktor Golicz"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.5"
+    }
+}

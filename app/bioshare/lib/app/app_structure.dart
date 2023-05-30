@@ -1,3 +1,4 @@
+import 'package:bioshare/app/my_fridges.dart';
 import 'package:flutter/material.dart';
 
 import './fridges_list.dart';
@@ -23,7 +24,7 @@ class _AppStructureState extends State<AppStructure> {
     screens = [
       FridgesList(goToLogin: widget.goToLogin),
       const Text("Tab 2"),
-      const Text("Tab 3"),
+      const MyFridges(),
     ];
   }
 

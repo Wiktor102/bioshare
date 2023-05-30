@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'package:bioshare/common/full_screen_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
 import "common/custom_input_decoration.dart";
 import "./utils/show_popup.dart";
+
+import './common/full_screen_loader.dart';
+import './main.dart';
 
 class LoginPage extends StatefulWidget {
   final Function() goToSignup;
@@ -77,6 +79,9 @@ class _LoginPageState extends State<LoginPage> {
       } else if (response.statusCode != 200) {
         throw Exception(decodedResponse.error);
       } else {
+        String token = decodedResponse["token"];
+        await App.secureStorage.write(key: "jwt", value: token);
+
         stopwatch.stop();
         if (stopwatch.elapsedMilliseconds < 2000) {
           await Future.delayed(Duration(milliseconds: 2000 - stopwatch.elapsedMilliseconds));
@@ -92,6 +97,7 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       popupText[0] = "Wystąpił nieznany błąd";
       popupText[1] = "Przepraszamy. Proszę spróbować później.";
+      print(e);
     } finally {
       stopwatch.stop();
       if (stopwatch.elapsedMilliseconds < 2000) {
