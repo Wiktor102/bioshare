@@ -1,6 +1,8 @@
-import 'package:bioshare/app/fridge_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+
+import './fridge_details.dart';
+import '../common/app_background.dart';
 
 class NearbyFridges extends StatelessWidget {
   final Function() goToLogin;
@@ -8,13 +10,15 @@ class NearbyFridges extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: ListView.separated(
-        itemCount: 10,
-        itemBuilder: (context, index) => FridgeCard(goToLogin: goToLogin),
-        separatorBuilder: (context, index) => const SizedBox(
-          height: 10,
+    return AppBackground(
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ListView.separated(
+          itemCount: 10,
+          itemBuilder: (context, index) => FridgeCard(goToLogin: goToLogin),
+          separatorBuilder: (context, index) => const SizedBox(
+            height: 10,
+          ),
         ),
       ),
     );
@@ -43,7 +47,6 @@ class FridgeCard extends StatelessWidget {
         height: 80,
         decoration: BoxDecoration(
           color: Theme.of(context).secondaryHeaderColor,
-          //   borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [

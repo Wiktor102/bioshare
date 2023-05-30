@@ -1,8 +1,8 @@
-import 'package:bioshare/app/app_bar.dart';
 import 'package:flutter/material.dart';
 
+import './nearby_fridges.dart';
+import './app_bar.dart';
 import "./bottom_nav.dart";
-import 'package:bioshare/app/nearby_fridges.dart';
 
 class AppStructure extends StatefulWidget {
   final Function() goToLogin;

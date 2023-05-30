@@ -42,6 +42,7 @@ class _AppState extends State<App> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 69, 182, 242),
+          secondary: const Color(0xff00ab8f),
         ),
         useMaterial3: true,
       ),

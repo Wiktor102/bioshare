@@ -1,0 +1,4 @@
+#Sun May 28 22:15:44 CEST 2023
+base.0=D\:\\descop\\projekty\\2023\\bioshare\\app\\bioshare\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

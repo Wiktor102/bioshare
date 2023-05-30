@@ -1,3 +1,6 @@
 {
-    "dart.lineLength": 115
+    "dart.lineLength": 115,
+    "cSpell.words": [
+        "vsync"
+    ]
 }
