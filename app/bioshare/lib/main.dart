@@ -1,3 +1,4 @@
+import 'package:bioshare/models/location_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -8,10 +9,11 @@ import "./login.dart";
 
 import './models/fridge_model.dart';
 
-void main() {
+void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => LocationModel()),
         ChangeNotifierProvider(create: (_) => FridgeModel()),
       ],
       child: const App(),

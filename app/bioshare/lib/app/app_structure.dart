@@ -1,9 +1,11 @@
-import 'package:bioshare/app/my_fridges.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import './fridges_list.dart';
 import './app_bar.dart';
 import "./bottom_nav.dart";
+import './my_fridges.dart';
+import '../models/fridge_model.dart';
 
 class AppStructure extends StatefulWidget {
   final Function() goToLogin;
@@ -16,17 +18,6 @@ class AppStructure extends StatefulWidget {
 class _AppStructureState extends State<AppStructure> {
   List titles = ["Lodówki w pobliżu", "Szukaj", "Moje lodówki"];
   int tabIndex = 0;
-  late List screens;
-
-  @override
-  initState() {
-    super.initState();
-    screens = [
-      FridgesList(goToLogin: widget.goToLogin),
-      const Text("Tab 2"),
-      const MyFridges(),
-    ];
-  }
 
   changeTab(int i) {
     setState(() => tabIndex = i);
@@ -34,6 +25,17 @@ class _AppStructureState extends State<AppStructure> {
 
   @override
   Widget build(BuildContext context) {
+    final FridgeModel provider = Provider.of<FridgeModel>(context);
+
+    final List<Widget> screens = [
+      FridgesList(
+        goToLogin: widget.goToLogin,
+        fridges: provider.fridges,
+      ),
+      const Text("Tab 2"),
+      const MyFridges(),
+    ];
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50),

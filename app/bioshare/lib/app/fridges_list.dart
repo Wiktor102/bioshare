@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 
+import '../models/location_model.dart';
 import './fridge_details.dart';
+import '../utils/calc_distance.dart';
 import '../common/app_background.dart';
+import '../models/fridge_model.dart';
 
 class FridgesList extends StatelessWidget {
   final Function() goToLogin;
-  const FridgesList({required this.goToLogin, super.key});
+  final List<Fridge> fridges;
+
+  const FridgesList({
+    required this.goToLogin,
+    required this.fridges,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +25,11 @@ class FridgesList extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: ListView.separated(
-          itemCount: 10,
-          itemBuilder: (context, index) => FridgeCard(goToLogin: goToLogin),
+          itemCount: fridges.length,
+          itemBuilder: (context, i) => FridgeCard(
+            goToLogin: goToLogin,
+            fridge: fridges[i],
+          ),
           separatorBuilder: (context, index) => const SizedBox(
             height: 10,
           ),
@@ -27,15 +41,62 @@ class FridgesList extends StatelessWidget {
 
 class FridgeCard extends StatelessWidget {
   final Function() goToLogin;
-  const FridgeCard({required this.goToLogin, super.key});
+  final Fridge fridge;
+
+  const FridgeCard({required this.goToLogin, required this.fridge, super.key});
 
   goToDetails(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FridgeDetails(
+          fridge: fridge,
           goToLogin: goToLogin,
         ),
       ),
+    );
+  }
+
+  Widget cardSubtitleBuilder(BuildContext context, LocationModel locationProvider, Widget? child) {
+    final Future<Position?> userLocationFuture = locationProvider.location;
+
+    return FutureBuilder(
+      future: userLocationFuture,
+      builder: (context, AsyncSnapshot<Position?> snapshot) {
+        final Position? userLocation = snapshot.data;
+        final String? address = fridge.address;
+        int? distance;
+        String output = "";
+
+        if (userLocation != null) {
+          distance = calculateDistance(
+            fridge.location.latitude,
+            fridge.location.longitude,
+            userLocation.latitude,
+            userLocation.longitude,
+          ).toInt();
+        }
+
+        if (address == null && userLocation == null) {
+          return Container();
+        }
+
+        if (address != null) {
+          output = address;
+        }
+
+        if (distance != null) {
+          output = "$distance km";
+        }
+
+        if (address != null && distance != null) {
+          output = "$distance km • ul. $address";
+        }
+
+        return Text(
+          output,
+          style: const TextStyle(color: Color.fromARGB(150, 0, 0, 0)),
+        );
+      },
     );
   }
 
@@ -55,12 +116,12 @@ class FridgeCard extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => goToDetails(context),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15),
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
                         child: ProfilePicture(
-                          name: 'Barbara',
+                          name: fridge.adminUsername,
                           radius: 15,
                           fontsize: 16,
                         ),
@@ -70,10 +131,9 @@ class FridgeCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Nazwa"),
-                            Text(
-                              "10 km • ul. Kwiatowa",
-                              style: TextStyle(color: Color.fromARGB(150, 0, 0, 0)),
+                            Text(fridge.name),
+                            Consumer<LocationModel>(
+                              builder: cardSubtitleBuilder,
                             ),
                           ],
                         ),
@@ -84,7 +144,7 @@ class FridgeCard extends StatelessWidget {
               ),
             ),
             const Image(
-              image: NetworkImage("https://picsum.photos/300"),
+              image: AssetImage("assets/fridge_placeholder.png"),
             )
           ],
         ),

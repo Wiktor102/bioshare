@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:bioshare/models/location_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import "common/custom_input_decoration.dart";
 import "./utils/show_popup.dart";
 
@@ -89,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
 
         if (context.mounted) {
           Navigator.of(context).pop();
+          Provider.of<LocationModel>(context, listen: false).askForPermission();
         }
 
         widget.goToApp();
