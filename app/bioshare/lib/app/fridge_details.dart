@@ -1,3 +1,4 @@
+import 'package:bioshare/common/custom_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:map_launcher/map_launcher.dart';
@@ -76,7 +77,7 @@ class FridgeDetails extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Card(
+                CustomCard(
                   title: "Gdzie jestem?",
                   children: [
                     SizedBox(
@@ -182,7 +183,7 @@ class FridgeDetails extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Card(
+                CustomCard(
                   title: "Dostępne produkty",
                   children: [
                     ExpandableListView(
@@ -222,7 +223,7 @@ class FridgeDetails extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Card(
+                CustomCard(
                   title: "Opis",
                   children: [
                     Align(
@@ -252,50 +253,6 @@ class FridgeDetails extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-    );
-  }
-}
-
-class Card extends StatelessWidget {
-  final List<Widget> children;
-  final String title;
-
-  const Card({
-    required this.children,
-    required this.title,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).secondaryHeaderColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            offset: const Offset(0, 3),
-            blurRadius: 5.0,
-          ),
-        ],
-      ),
-      child: Column(children: [
-        Align(
-          alignment: Alignment.topLeft,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
-        ...children,
-      ]),
     );
   }
 }

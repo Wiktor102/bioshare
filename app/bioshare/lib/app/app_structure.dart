@@ -33,7 +33,9 @@ class _AppStructureState extends State<AppStructure> {
         fridges: provider.fridges,
       ),
       const Text("Tab 2"),
-      const MyFridges(),
+      MyFridges(
+        goToLogin: widget.goToLogin,
+      ),
     ];
 
     return Scaffold(
