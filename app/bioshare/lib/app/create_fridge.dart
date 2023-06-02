@@ -1,6 +1,7 @@
 import 'package:bioshare/common/custom_card.dart';
 import 'package:bioshare/common/location_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 // common components
 import './app_bar.dart';
@@ -23,7 +24,38 @@ class _CreateFridgeState extends State<CreateFridge> {
   String name = "";
   String address = "";
   String description = "";
+  LatLng? location;
   bool test = false;
+
+  addFridge() {
+    if (widget._formKey.currentState?.validate() == false) {
+      return;
+    }
+
+    if (location == null) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Podaj lokalizację"),
+          content: const Text("Użyj mapy alby wskazać gdzie dokładnie znajduje sie lodówka"),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    widget._formKey.currentState?.save();
+    print(name);
+    print(address);
+    print(description);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +81,11 @@ class _CreateFridgeState extends State<CreateFridge> {
                 children: [
                   TextFormField(
                     onSaved: (newValue) => name = (newValue ?? ""),
+                    validator: (String? value) {
+                      if (value == "" || value == null) return "Nazwa jest wymagana";
+                      if (value.length > 60) return "Nazwa musi mieć ≤ 50 znaków";
+                      return null;
+                    },
                     decoration: gedInputDecoration(
                       context,
                       labelText: "Nazwa",
@@ -81,12 +118,14 @@ class _CreateFridgeState extends State<CreateFridge> {
                   const SizedBox(height: 20),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: const CustomCard(
+                    child: CustomCard(
                       title: "Wskaż miejsce lodówki",
                       children: [
                         SizedBox(
                           height: 170,
-                          child: LocationPicker(),
+                          child: LocationPicker(
+                            onSelected: (nl) => setState(() => location = nl),
+                          ),
                         )
                       ],
                     ),
@@ -130,7 +169,7 @@ class _CreateFridgeState extends State<CreateFridge> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {},
+          onPressed: addFridge,
           backgroundColor: Theme.of(context).colorScheme.secondary,
           foregroundColor: Colors.white,
           child: const Icon(Icons.done),
