@@ -1,13 +1,13 @@
 <?php
+// require "./vendor/autoload.php";
+require_once "./connect.php";
+require_once "./auth/verify_jwt.php";
+
 session_start();
 header("Content-Type: application/json");
 
-if (!isset($_SESSION["userId"])) {
-	http_response_code(403);
-	exit();
-}
-
-$userId = @$_SESSION["userId"];
+$credentials = verifyJWT();
+$userId = $credentials["userId"];
 
 $input = file_get_contents("php://input");
 $inputJson = json_decode($input, true);
@@ -37,8 +37,9 @@ function createFridge()
 	global $inputJson, $userId;
 	$conn = connect();
 	$stmt = $conn->stmt_init();
-	$sql = "INSERT INTO `fridge`VALUES (NULL, ?, POINT(?, ?), ?, ?);";
+	$sql = "INSERT INTO `fridge`VALUES (NULL, ?, ?, POINT(?, ?), ?, ?);";
 
+	$name = $inputJson["name"];
 	$lat = $inputJson["location"][0];
 	$lng = $inputJson["location"][1];
 	$address = $inputJson["address"];
@@ -57,7 +58,7 @@ function createFridge()
 		exit($msg);
 	}
 
-	$stmt->bind_param("iiiss", $userId, $lat, $lng, $address, $desc);
+	$stmt->bind_param("siiiss", $name, $userId, $lat, $lng, $address, $desc);
 
 	if (!$stmt->execute()) {
 		$msg = json_encode(

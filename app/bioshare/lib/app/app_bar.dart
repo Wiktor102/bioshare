@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 
+import '../main.dart';
+
 class CustomAppBar extends StatefulWidget {
   final String title;
   final Function() goToLogin;
@@ -106,6 +108,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
   }
 
   logOut() async {
+    await App.secureStorage.delete(key: "jwt");
+
     Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/auth/logOut.php");
     if (!kReleaseMode) {
       uri = Uri.parse("http://192.168.1.66:4000/auth/logOut.php");

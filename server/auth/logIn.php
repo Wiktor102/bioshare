@@ -34,8 +34,6 @@ function main()
 
 	// W przyszłości tutaj sprawdzać czy e-mail jest zweryfikowany
 
-	$_SESSION["userId"] = $userData["id"];
-
 	exit(json_encode(generateToken($userData["id"])));
 }
 

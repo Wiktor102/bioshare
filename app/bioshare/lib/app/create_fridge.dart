@@ -1,7 +1,20 @@
-import 'package:bioshare/common/custom_card.dart';
-import 'package:bioshare/common/location_picker.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:bioshare/main.dart';
+import 'package:bioshare/utils/show_popup.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
+// common
+import '../common/custom_card.dart';
+import '../common/location_picker.dart';
+
+// model classes
+import '../models/fridge_model.dart';
 
 // common components
 import './app_bar.dart';
@@ -27,7 +40,7 @@ class _CreateFridgeState extends State<CreateFridge> {
   LatLng? location;
   bool test = false;
 
-  addFridge() {
+  addFridge(BuildContext context) async {
     if (widget._formKey.currentState?.validate() == false) {
       return;
     }
@@ -52,9 +65,91 @@ class _CreateFridgeState extends State<CreateFridge> {
     }
 
     widget._formKey.currentState?.save();
-    print(name);
-    print(address);
-    print(description);
+
+    final String body = json.encode({
+      "name": name,
+      "address": address,
+      "description": description,
+      "location": [location!.latitude, location!.longitude],
+    });
+
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php");
+    }
+
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      if (context.mounted) {
+        sessionExpired(context);
+      }
+      return;
+    }
+
+    try {
+      final http.Response response = await http.post(
+        uri,
+        body: body,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode == 403) {
+        print(response.body);
+        print(context.mounted);
+        if (context.mounted) {
+          sessionExpired(context);
+        }
+        return;
+      }
+
+      if (response.body == "") {
+        throw Exception(response.statusCode);
+      }
+
+      dynamic decodedResponse;
+
+      try {
+        decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+      } catch (e) {
+        throw Exception(response.body);
+      }
+
+      if (response.statusCode == 200) {
+        final Fridge newFridge = Fridge(
+          id: decodedResponse["id"],
+          name: decodedResponse["name"],
+          adminId: decodedResponse["admin"],
+          location: LatLng(decodedResponse["location"][0], decodedResponse["location"][1]),
+          description: decodedResponse["description"],
+          availableItems: [],
+          adminUsername: "Test Username",
+        );
+
+        if (context.mounted) {
+          Provider.of<FridgeModel>(context, listen: false).addFridge(newFridge);
+          Navigator.of(context).pop();
+        }
+      } else {
+        print(response.statusCode);
+        throw Exception(decodedResponse.error);
+      }
+    } catch (e) {
+      print(e);
+
+      if (context.mounted) {
+        showPopup(context, "Wystąpił nieznany błąd", "Przepraszamy. Proszę spróbować później.");
+      }
+    }
+  }
+
+  sessionExpired(BuildContext context) async {
+    Navigator.of(context).pop();
+    showPopup(context, "Twoja sesja wygasła", "musisz się zalogować ponownie");
+    await App.secureStorage.delete(key: "jwt");
+    widget.goToLogin();
   }
 
   @override
@@ -169,7 +264,7 @@ class _CreateFridgeState extends State<CreateFridge> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: addFridge,
+          onPressed: () => addFridge(context),
           backgroundColor: Theme.of(context).colorScheme.secondary,
           foregroundColor: Colors.white,
           child: const Icon(Icons.done),

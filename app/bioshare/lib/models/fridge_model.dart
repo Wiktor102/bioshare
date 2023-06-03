@@ -5,6 +5,10 @@ class FridgeModel extends ChangeNotifier {
   List<Fridge> _fridges = [];
   get fridges => _fridges;
 
+  addFridge(Fridge newFridge) {
+    _fridges.add(newFridge);
+  }
+
   FridgeModel() {
     _fridges.add(Fridge(
       id: 1,
