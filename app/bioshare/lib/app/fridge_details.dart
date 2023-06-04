@@ -87,6 +87,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.fridge.test);
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,

@@ -45,13 +45,14 @@ function createFridge()
 	global $inputJson, $userId;
 	$conn = connect();
 	$stmt = $conn->stmt_init();
-	$sql = "INSERT INTO `fridge`VALUES (NULL, ?, ?, POINT(?, ?), ?, ?);";
+	$sql = "INSERT INTO `fridge`VALUES (NULL, ?, ?, POINT(?, ?), ?, ?, ?);";
 
 	$name = $inputJson["name"];
 	$lat = $inputJson["location"][0];
 	$lng = $inputJson["location"][1];
 	$address = $inputJson["address"];
 	$desc = $inputJson["description"];
+	$test = $inputJson["test"];
 
 	if (!$stmt->prepare($sql)) {
 		$msg = json_encode(
@@ -66,7 +67,7 @@ function createFridge()
 		exit($msg);
 	}
 
-	$stmt->bind_param("siiiss", $name, $userId, $lat, $lng, $address, $desc);
+	$stmt->bind_param("siiissi", $name, $userId, $lat, $lng, $address, $desc, $test);
 
 	if (!$stmt->execute()) {
 		$msg = json_encode(
@@ -92,7 +93,7 @@ function getFridge()
 {
 	$conn = connect();
 	$sql =
-		"SELECT `id`, `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description` FROM `fridge`;";
+		"SELECT `id`, `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description`, `test` FROM `fridge`;";
 
 	if ($result = $conn->query($sql)) {
 		if ($result->num_rows <= 0) {

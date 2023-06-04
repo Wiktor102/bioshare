@@ -62,7 +62,7 @@ class FridgeModel extends ChangeNotifier {
           description: value["description"],
           availableItems: null,
           adminUsername: "Test",
-          test: true,
+          test: value["test"] == "1", // MariaDB returns "0" or "1" so we need to convert it to bool
         ));
       }
 
@@ -155,9 +155,9 @@ class Fridge {
     required this.adminId,
     required this.adminUsername,
     required this.location,
+    required this.test,
     this.address,
     this.description,
-    this.test = false,
   }) : _availableItems = availableItems {
     if (_availableItems != null) {
       lastUpdatedItems = DateTime.now();

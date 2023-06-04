@@ -74,6 +74,7 @@ class _CreateFridgeState extends State<CreateFridge> {
       "address": address,
       "description": description,
       "location": [location!.latitude, location!.longitude],
+      "test": test ? 1 : 0,
     });
 
     Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php");
@@ -120,14 +121,14 @@ class _CreateFridgeState extends State<CreateFridge> {
 
       if (response.statusCode == 200) {
         final Fridge newFridge = Fridge(
-          id: decodedResponse["id"],
-          name: decodedResponse["name"],
-          adminId: decodedResponse["admin"],
-          location: LatLng(decodedResponse["location"][0], decodedResponse["location"][1]),
-          description: decodedResponse["description"],
-          availableItems: [],
-          adminUsername: "Test Username",
-        );
+            id: decodedResponse["id"],
+            name: decodedResponse["name"],
+            adminId: decodedResponse["admin"],
+            location: LatLng(decodedResponse["location"][0], decodedResponse["location"][1]),
+            description: decodedResponse["description"],
+            availableItems: [],
+            adminUsername: "Test Username",
+            test: test);
 
         if (context.mounted) {
           Provider.of<FridgeModel>(context, listen: false).addFridge(newFridge);
