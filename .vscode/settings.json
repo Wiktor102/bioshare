@@ -1,6 +1,8 @@
 {
     "dart.lineLength": 115,
     "cSpell.words": [
+        "Autovalidate",
+        "Cupertino",
         "vsync"
     ]
 }

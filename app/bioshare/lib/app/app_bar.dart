@@ -1,16 +1,16 @@
+import 'package:bioshare/models/view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+import 'package:provider/provider.dart';
 
 import '../main.dart';
 
 class CustomAppBar extends StatefulWidget {
   final String title;
-  final Function() goToLogin;
-
-  const CustomAppBar({required this.title, required this.goToLogin, super.key});
+  const CustomAppBar({required this.title, super.key});
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -119,10 +119,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
     if (response.statusCode == 200) {
       if (context.mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Provider.of<ViewModel>(context, listen: false).goToLogin();
       }
-
-      widget.goToLogin();
     }
   }
 

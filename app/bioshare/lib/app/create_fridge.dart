@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bioshare/main.dart';
-import 'package:bioshare/utils/show_popup.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -12,6 +10,11 @@ import 'package:provider/provider.dart';
 // common
 import '../common/custom_card.dart';
 import '../common/location_picker.dart';
+
+// utilities
+import '../main.dart';
+import '../utils/session_expired.dart';
+import '../utils/show_popup.dart';
 
 // model classes
 import '../models/fridge_model.dart';
@@ -97,8 +100,6 @@ class _CreateFridgeState extends State<CreateFridge> {
       );
 
       if (response.statusCode == 403) {
-        print(response.body);
-        print(context.mounted);
         if (context.mounted) {
           sessionExpired(context);
         }
@@ -145,26 +146,15 @@ class _CreateFridgeState extends State<CreateFridge> {
     }
   }
 
-  sessionExpired(BuildContext context) async {
-    Navigator.of(context).pop();
-    showPopup(context, "Twoja sesja wygasła", "musisz się zalogować ponownie");
-    await App.secureStorage.delete(key: "jwt");
-    widget.goToLogin();
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(50),
           child: CustomAppBar(
             title: "Stwórz lodówkę",
-            goToLogin: () {
-              Navigator.of(context).pop();
-              widget.goToLogin();
-            },
           ),
         ),
         body: SingleChildScrollView(

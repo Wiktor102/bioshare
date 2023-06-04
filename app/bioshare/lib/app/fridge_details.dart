@@ -1,3 +1,4 @@
+import 'package:bioshare/app/add_product.dart';
 import 'package:bioshare/common/custom_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
@@ -56,19 +57,24 @@ class FridgeDetails extends StatelessWidget {
     );
   }
 
+  addProduct(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddProduct(fridgeId: fridge.id),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(50),
           child: CustomAppBar(
             title: "Szczegóły",
-            goToLogin: () {
-              Navigator.of(context).pop();
-              goToLogin();
-            },
           ),
         ),
         body: SingleChildScrollView(
@@ -186,40 +192,42 @@ class FridgeDetails extends StatelessWidget {
                 CustomCard(
                   title: "Dostępne produkty",
                   children: [
-                    ExpandableListView(
-                      itemCount: fridge.availableItems.length,
-                      visibleItemCount: 3,
-                      itemBuilder: (context, i) {
-                        final Item item = fridge.availableItems[i];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.only(left: 20, right: 0),
-                          title: Text(item.name),
-                          trailing: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              OutlinedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  foregroundColor: Colors.white,
+                    fridge.availableItems.isNotEmpty
+                        ? ExpandableListView(
+                            itemCount: fridge.availableItems.length,
+                            visibleItemCount: fridge.availableItems.length < 3 ? fridge.availableItems.length : 3,
+                            itemBuilder: (context, i) {
+                              final Item item = fridge.availableItems[i];
+                              return ListTile(
+                                contentPadding: const EdgeInsets.only(left: 20, right: 0),
+                                title: Text(item.name),
+                                trailing: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context).colorScheme.primary,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: const Text("Biorę"),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.more_vert),
+                                      onPressed: () => showItemOptions(context, item),
+                                    ),
+                                  ],
                                 ),
-                                child: const Text("Biorę"),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.more_vert),
-                                onPressed: () => showItemOptions(context, item),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) => Divider(
-                        color: Theme.of(context).primaryColorLight,
-                        thickness: 1.0,
-                        height: 0.0,
-                      ),
-                    )
+                              );
+                            },
+                            separatorBuilder: (context, index) => Divider(
+                              color: Theme.of(context).primaryColorLight,
+                              thickness: 1.0,
+                              height: 0.0,
+                            ),
+                          )
+                        : Empty(addProduct),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -246,12 +254,47 @@ class FridgeDetails extends StatelessWidget {
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {},
+          onPressed: () => addProduct(context),
           label: const Text("Podziel się"),
           icon: const Icon(Icons.add),
           backgroundColor: Theme.of(context).colorScheme.secondary,
           foregroundColor: Colors.white,
         ),
+      ),
+    );
+  }
+}
+
+class Empty extends StatelessWidget {
+  final Function(BuildContext) addProduct;
+  const Empty(this.addProduct, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 50, right: 50, bottom: 20, top: 20),
+            child: Image(image: AssetImage("assets/empty.png")),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: Text("Lodówka jest pusta", style: TextStyle(fontSize: 16)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: ElevatedButton.icon(
+              onPressed: () => addProduct(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+              ),
+              label: const Text("Dodaj produkt"),
+              icon: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
   }

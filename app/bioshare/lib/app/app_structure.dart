@@ -41,7 +41,7 @@ class _AppStructureState extends State<AppStructure> {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50),
-        child: CustomAppBar(title: titles[tabIndex], goToLogin: widget.goToLogin),
+        child: CustomAppBar(title: titles[tabIndex]),
       ),
       body: screens[tabIndex],
       bottomNavigationBar: BottomNav(tabIndex: tabIndex, changeTab: changeTab),

@@ -1,13 +1,15 @@
-import 'package:bioshare/models/location_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_structure.dart';
 import "./signup.dart";
 import "./login.dart";
 
+import './models/view_model.dart' as AppViews;
 import './models/fridge_model.dart';
+import './models/location_model.dart';
 
 void main() async {
   runApp(
@@ -15,13 +17,12 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => LocationModel()),
         ChangeNotifierProvider(create: (_) => FridgeModel()),
+        ChangeNotifierProvider(create: (_) => AppViews.ViewModel()),
       ],
       child: const App(),
     ),
   );
 }
-
-enum View { appView, loginView, signupView }
 
 class App extends StatefulWidget {
   static var secureStorage = const FlutterSecureStorage(
@@ -37,22 +38,18 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  View currentView = View.loginView;
-
-  setView(View newView) {
-    setState(() => currentView = newView);
-  }
-
-  Widget getView() {
-    if (currentView == View.loginView) {
-      return LoginPage(() => setView(View.signupView), () => setView(View.appView));
+  Widget getView(AppViews.ViewModel provider) {
+    final currentView = provider.currentView;
+    final setView = provider.setView;
+    if (currentView == AppViews.View.loginView) {
+      return LoginPage(() => setView(AppViews.View.signupView), () => setView(AppViews.View.appView));
     }
 
-    if (currentView == View.signupView) {
-      return SignupPage(() => setView(View.loginView));
+    if (currentView == AppViews.View.signupView) {
+      return SignupPage(() => setView(AppViews.View.loginView));
     }
 
-    return AppStructure(goToLogin: () => setView(View.loginView));
+    return AppStructure(goToLogin: () => setView(AppViews.View.loginView));
   }
 
   @override
@@ -66,7 +63,17 @@ class _AppState extends State<App> {
         ),
         useMaterial3: true,
       ),
-      home: getView(),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('pl'),
+      ],
+      home: Consumer<AppViews.ViewModel>(builder: (context, provider, child) {
+        return getView(provider);
+      }),
     );
   }
 }
