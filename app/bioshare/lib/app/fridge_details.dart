@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:intl/intl.dart';
 import 'package:map_launcher/map_launcher.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/fridge_model.dart';
@@ -49,17 +50,23 @@ class _FridgeDetailsState extends State<FridgeDetails> {
   }
 
   showItemOptions(BuildContext context, Item item) {
-    showBottomSheet(
+    showModalBottomSheet(
       context: context,
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(
-              title: Text("Tego produktu już tu nie ma"),
-              subtitle: Text("Usuń go"),
-              leading: Icon(Icons.delete),
+            InkWell(
+              onTap: () {
+                deleteProduct(context, null, item.id);
+                Navigator.of(context).pop();
+              },
+              child: const ListTile(
+                title: Text("Tego produktu już tu nie ma"),
+                subtitle: Text("Usuń go"),
+                leading: Icon(Icons.delete),
+              ),
             ),
             const ListTile(
               title: Text("Edytuj"),
@@ -85,9 +92,14 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     );
   }
 
+  deleteProduct(BuildContext context, int? i, int? itemId) {
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    itemId ??= widget.fridge.availableItems![i!].id;
+    provider.deleteItem(widget.fridge.id, itemId);
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(widget.fridge.test);
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -251,7 +263,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       ElevatedButton(
-                                        onPressed: () {},
+                                        onPressed: () => deleteProduct(context, i, null),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Theme.of(context).colorScheme.primary,
                                           foregroundColor: Colors.white,

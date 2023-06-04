@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -25,6 +26,17 @@ class FridgeModel extends ChangeNotifier {
   void addItem(int id, Item newItem) {
     _getFridge(id)?.addItem(newItem);
     notifyListeners();
+  }
+
+  Future<void> deleteItem(int fridgeId, int itemId) async {
+    final Fridge? f = _getFridge(fridgeId);
+    if (f == null) return;
+
+    bool success = await f.getItem(itemId)!.delete();
+    if (success) {
+      f._availableItems!.removeWhere((Item item) => item.id == itemId);
+      notifyListeners();
+    }
   }
 
   Future<List<Fridge>> getMyFridges() async {
@@ -195,6 +207,11 @@ class Fridge {
       return value + 1;
     });
   }
+
+  Item? getItem(int id) {
+    if (_availableItems == null) return null;
+    return _availableItems!.firstWhere((element) => element.id == id);
+  }
 }
 
 class Item {
@@ -213,4 +230,38 @@ class Item {
     required this.fridgeId,
     required this.expire,
   });
+
+  Future<bool> delete() async {
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/item.php/$id");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/item.php/$id");
+    }
+
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      return false;
+    }
+
+    try {
+      final http.Response response = await http.delete(
+        uri,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception("#${response.statusCode}: ${response.body}");
+      }
+
+      return true;
+    } catch (e, stacktrace) {
+      if (kDebugMode) {
+        print('Exception: $e');
+        print('Stacktrace: $stacktrace');
+      }
+      return false;
+    }
+  }
 }

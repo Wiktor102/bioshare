@@ -23,6 +23,13 @@ switch ($method) {
 		}
 
 		createItem();
+	case "DELETE":
+		if (is_numeric($request[0])) {
+			deleteItem($request[0]);
+		} else {
+			http_response_code(404);
+			exit();
+		}
 	default:
 		http_response_code(405);
 		header("Allow: GET, POST");
@@ -73,4 +80,42 @@ function createItem()
 	$inputJson->{"id"} = $stmt->insert_id;
 	http_response_code(200);
 	exit(json_encode($inputJson, JSON_UNESCAPED_UNICODE));
+}
+
+function deleteItem($id)
+{
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "DELETE FROM `item` WHERE `id` = ?;";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("i", $id);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	http_response_code(200);
+	exit();
 }
