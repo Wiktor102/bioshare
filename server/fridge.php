@@ -67,7 +67,7 @@ function createFridge()
 		exit($msg);
 	}
 
-	$stmt->bind_param("siiissi", $name, $userId, $lat, $lng, $address, $desc, $test);
+	$stmt->bind_param("siddssi", $name, $userId, $lat, $lng, $address, $desc, $test);
 
 	if (!$stmt->execute()) {
 		$msg = json_encode(
