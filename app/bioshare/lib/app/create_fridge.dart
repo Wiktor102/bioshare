@@ -23,14 +23,10 @@ import '../models/fridge_model.dart';
 import './app_bar.dart';
 
 class CreateFridge extends StatefulWidget {
-  final Function() goToLogin;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
 
-  CreateFridge({
-    required this.goToLogin,
-    super.key,
-  });
+  CreateFridge({super.key});
 
   @override
   State<CreateFridge> createState() => _CreateFridgeState();

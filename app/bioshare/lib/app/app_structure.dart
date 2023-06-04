@@ -30,7 +30,7 @@ class _AppStructureState extends State<AppStructure> {
     final List<Widget> screens = [
       FridgesList(fridges: provider.fridges),
       const Text("Tab 2"),
-      MyFridges(goToLogin: widget.goToLogin),
+      const MyFridges(),
     ];
 
     return Scaffold(

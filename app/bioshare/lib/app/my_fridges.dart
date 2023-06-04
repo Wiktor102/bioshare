@@ -4,19 +4,12 @@ import 'package:flutter/material.dart';
 import './create_fridge.dart';
 
 class MyFridges extends StatelessWidget {
-  final Function() goToLogin;
-
-  const MyFridges({
-    required this.goToLogin,
-    super.key,
-  });
+  const MyFridges({super.key});
 
   void addFridge(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CreateFridge(
-          goToLogin: goToLogin,
-        ),
+        builder: (_) => CreateFridge(),
       ),
     );
   }
