@@ -56,21 +56,23 @@ class _ExpandableListViewState extends State<ExpandableListView> with SingleTick
             color: Colors.transparent,
             child: InkWell(
               onTap: _toggleExpandedState,
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      width: 1,
-                      color: Theme.of(context).primaryColorLight,
-                    ),
-                  ),
-                ),
-                child: Icon(
-                  isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: Colors.black,
-                ),
-              ),
+              child: widget.itemCount > widget.visibleItemCount
+                  ? Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            width: 1,
+                            color: Theme.of(context).primaryColorLight,
+                          ),
+                        ),
+                      ),
+                      child: Icon(
+                        isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                        color: Colors.black,
+                      ),
+                    )
+                  : Container(),
             ),
           ),
         ),
