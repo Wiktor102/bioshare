@@ -9,11 +9,15 @@ import '../utils/calc_distance.dart';
 import '../common/app_background.dart';
 import '../models/fridge_model.dart';
 
+enum FridgeListType { normal, admin }
+
 class FridgesList extends StatelessWidget {
   final List<Fridge> fridges;
+  final FridgeListType listType;
 
   const FridgesList({
     required this.fridges,
+    this.listType = FridgeListType.normal,
     super.key,
   });
 
@@ -24,7 +28,7 @@ class FridgesList extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         child: ListView.separated(
           itemCount: fridges.length,
-          itemBuilder: (context, i) => FridgeCard(fridge: fridges[i]),
+          itemBuilder: (context, i) => FridgeCard(fridge: fridges[i], tileType: listType),
           separatorBuilder: (context, index) => const SizedBox(
             height: 10,
           ),
@@ -36,8 +40,13 @@ class FridgesList extends StatelessWidget {
 
 class FridgeCard extends StatelessWidget {
   final Fridge fridge;
+  final FridgeListType tileType;
 
-  const FridgeCard({required this.fridge, super.key});
+  const FridgeCard({
+    required this.fridge,
+    required this.tileType,
+    super.key,
+  });
 
   goToDetails(BuildContext context) {
     Navigator.of(context).push(
@@ -46,6 +55,68 @@ class FridgeCard extends StatelessWidget {
           fridge: fridge,
           provider: Provider.of<FridgeModel>(context),
         ),
+      ),
+    );
+  }
+
+  Widget getSubtitle(BuildContext context) {
+    if (tileType == FridgeListType.normal) {
+      return Consumer<LocationModel>(
+        builder: cardSubtitleBuilder,
+      );
+    }
+    final timePassed =
+        DateTime.now().difference(fridge.lastUpdatedItems ?? DateTime.now()) >= const Duration(minutes: 30);
+
+    if (fridge.availableItems == null || timePassed) {
+      final provider = Provider.of<FridgeModel>(context);
+      provider.fetchFridgeItems(fridge.id);
+      return const Padding(
+        padding: EdgeInsets.only(top: 10),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    late String message;
+    late IconData icon;
+    Color? color;
+    final numberOfExpiredItems = fridge.getExpiredItems();
+
+    if (fridge.availableItems!.isNotEmpty) {
+      message = "Liczba produktów: ${fridge.availableItems!.length}";
+      icon = Icons.info;
+    }
+
+    if (fridge.availableItems!.isEmpty) {
+      message = "Lodówka jest pusta";
+      icon = Icons.hide_source;
+      color = Colors.orange;
+    }
+
+    if (numberOfExpiredItems > 0) {
+      message = "Przeterminowan${numberOfExpiredItems > 1 ? "e produkty" : "y produkt"}";
+      icon = Icons.warning_amber_rounded;
+      color = Colors.red;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 16,
+          ),
+          const SizedBox(
+            width: 5,
+          ),
+          Text(message, style: TextStyle(color: color, fontSize: 12)),
+        ],
       ),
     );
   }
@@ -125,10 +196,14 @@ class FridgeCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(fridge.name),
-                            Consumer<LocationModel>(
-                              builder: cardSubtitleBuilder,
+                            Text(
+                              fridge.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                              ),
                             ),
+                            getSubtitle(context),
                           ],
                         ),
                       ),

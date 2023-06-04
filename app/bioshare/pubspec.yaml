@@ -49,6 +49,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
+  jwt_decode: ^0.3.1
 
 dev_dependencies:
   flutter_test:

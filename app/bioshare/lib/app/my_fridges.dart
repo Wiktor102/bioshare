@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// model classes
+import '../models/fridge_model.dart';
+
+// widgets
+import './fridges_list.dart';
 
 // widgets
 import './create_fridge.dart';
@@ -17,6 +24,17 @@ class MyFridges extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: Consumer<FridgeModel>(builder: (context, provider, child) {
+        return FutureBuilder(
+            future: provider.getMyFridges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) return const CircularProgressIndicator();
+              return FridgesList(
+                fridges: snapshot.data ?? [],
+                listType: FridgeListType.admin,
+              );
+            });
+      }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => addFridge(context),
         label: const Text("Dodaj lodówkę"),

@@ -1,8 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-
 import 'package:latlong2/latlong.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decode/jwt_decode.dart';
+
+import '../main.dart';
 
 class FridgeModel extends ChangeNotifier {
   final List<Fridge> _fridges = [];
@@ -23,6 +25,15 @@ class FridgeModel extends ChangeNotifier {
   void addItem(int id, Item newItem) {
     _getFridge(id)?.addItem(newItem);
     notifyListeners();
+  }
+
+  Future<List<Fridge>> getMyFridges() async {
+    final String? jwt = await App.secureStorage.read(key: "jwt");
+    if (jwt == null) return [];
+    final Map<String, dynamic> decodedJWT = Jwt.parseJwt(jwt);
+    print(decodedJWT);
+
+    return _fridges.where((element) => element.adminId == decodedJWT["user_id"]).toList();
   }
 
   /// Fetches fridges from the database and saves them to the [_fridges] variable
@@ -81,6 +92,12 @@ class FridgeModel extends ChangeNotifier {
     try {
       final http.Response response = await http.get(uri);
 
+      if (response.statusCode == 404) {
+        _getFridge(fridgeId)?._availableItems = [];
+        notifyListeners();
+        return;
+      }
+
       if (response.body == "") {
         throw Exception(response.statusCode);
       }
@@ -91,10 +108,6 @@ class FridgeModel extends ChangeNotifier {
         decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       } catch (e) {
         throw Exception(e);
-      }
-
-      if (response.statusCode == 400) {
-        _getFridge(fridgeId)?._availableItems = [];
       }
 
       if (response.statusCode != 200) {
@@ -173,6 +186,14 @@ class Fridge {
     }
 
     _availableItems!.add(item);
+  }
+
+  int getExpiredItems() {
+    if (_availableItems == null) return 0;
+    return _availableItems!.fold<int>(0, (value, item) {
+      if (item.expire == null || DateTime.now().isBefore(item.expire!)) return value;
+      return value + 1;
+    });
   }
 }
 
