@@ -34,7 +34,7 @@ function createItem()
 	global $inputJson;
 	$conn = connect();
 	$stmt = $conn->stmt_init();
-	$sql = "INSERT INTO `item` VALUES (NULL, ?, ?, ?, ?);";
+	$sql = "INSERT INTO `item` VALUES (NULL, ?, ?, ?, ?, ?);";
 
 	if (!$stmt->prepare($sql)) {
 		$msg = json_encode(
@@ -53,8 +53,9 @@ function createItem()
 	$fridgeId = $inputJson->fridgeId;
 	$amount = $inputJson->amount;
 	$unit = $inputJson->unit;
+	$expire = $inputJson->expire;
 
-	$stmt->bind_param("siss", $name, $fridgeId, $amount, $unit);
+	$stmt->bind_param("sisss", $name, $fridgeId, $amount, $unit, $expire);
 
 	if (!$stmt->execute()) {
 		$msg = json_encode(

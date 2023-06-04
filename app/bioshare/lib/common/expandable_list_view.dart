@@ -37,7 +37,7 @@ class _ExpandableListViewState extends State<ExpandableListView> with SingleTick
           duration: animationDuration,
           curve: Curves.easeInOut,
           child: SizedBox(
-            height: isExpanded ? null : widget.visibleItemCount * 56.0,
+            height: isExpanded ? null : widget.visibleItemCount * 65.0,
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

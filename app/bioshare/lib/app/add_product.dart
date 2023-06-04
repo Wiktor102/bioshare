@@ -39,6 +39,7 @@ class _AddProductState extends State<AddProduct> {
       "name": name,
       "amount": amount,
       "unit": unit,
+      "expire": expireDate == null ? null : DateFormat("yyyy-MM-dd").format(expireDate!),
       "fridgeId": widget.fridgeId,
     });
 
@@ -92,6 +93,7 @@ class _AddProductState extends State<AddProduct> {
           amount: decodedResponse["amount"]?.toDouble(),
           unit: decodedResponse["unit"],
           fridgeId: decodedResponse["fridgeId"],
+          expire: DateTime.parse(decodedResponse["expire"]),
         );
 
         if (context.mounted) {

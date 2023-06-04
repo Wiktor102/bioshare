@@ -3,6 +3,7 @@ import 'package:bioshare/common/conditional_parent_widget.dart';
 import 'package:bioshare/common/custom_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
+import 'package:intl/intl.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -234,7 +235,16 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                 final Item item = widget.fridge.availableItems![i];
                                 return ListTile(
                                   contentPadding: const EdgeInsets.only(left: 20, right: 0),
-                                  title: Text(item.name),
+                                  title: item.amount != null
+                                      ? Text(
+                                          "${item.name} - ${item.amount! % 1 == 0 ? item.amount!.toInt() : item.amount} ${item.unit}")
+                                      : Text(item.name),
+                                  subtitle: item.expire == null
+                                      ? null
+                                      : item.expire!.isAfter(DateTime.now())
+                                          ? Text("Ważne do: ${DateFormat('dd.MM.yyyy').format(item.expire!)}")
+                                          : const Text("Data ważności minęła",
+                                              style: TextStyle(color: Colors.red)),
                                   trailing: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     mainAxisSize: MainAxisSize.min,

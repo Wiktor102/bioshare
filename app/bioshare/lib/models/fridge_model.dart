@@ -111,6 +111,7 @@ class FridgeModel extends ChangeNotifier {
           amount: double.parse(value["amount"].toString()),
           unit: value["unit"],
           fridgeId: int.parse(value["fridge"].toString()),
+          expire: DateTime.parse(value["expire"]),
         ));
       }
 
@@ -181,6 +182,7 @@ class Item {
   String name;
   double? amount;
   String? unit;
+  DateTime? expire;
 
   Item({
     required this.id,
@@ -188,5 +190,6 @@ class Item {
     required this.amount,
     required this.unit,
     required this.fridgeId,
+    required this.expire,
   });
 }
