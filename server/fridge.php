@@ -4,10 +4,9 @@ require_once "./connect.php";
 require_once "./auth/verify_jwt.php";
 
 session_start();
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=utf-8");
 
-$credentials = verifyJWT();
-$userId = $credentials["userId"];
+$userId = null;
 
 $input = file_get_contents("php://input");
 $inputJson = json_decode($input, true);
@@ -18,6 +17,9 @@ $query = $_SERVER["QUERY_STRING"];
 
 switch ($method) {
 	case "POST":
+		$credentials = verifyJWT();
+		$userId = $credentials["userId"];
+
 		if ($inputJson == null) {
 			http_response_code(400);
 			exit();
@@ -25,7 +27,13 @@ switch ($method) {
 
 		createFridge();
 	case "GET":
-		getFridge();
+		if ($request[0] == "") {
+			getFridge();
+		}
+
+		if (is_numeric($request[0]) && $request[1] == "items") {
+			getItemsInFridge($request[0]);
+		}
 	default:
 		http_response_code(405);
 		header("Allow: GET, POST");
@@ -82,9 +90,9 @@ function createFridge()
 
 function getFridge()
 {
-	global $request;
 	$conn = connect();
-	$sql = "SELECT * FROM `fridge`;";
+	$sql =
+		"SELECT `id`, `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description` FROM `fridge`;";
 
 	if ($result = $conn->query($sql)) {
 		if ($result->num_rows <= 0) {
@@ -113,6 +121,55 @@ function getFridge()
 	}
 }
 
+function getItemsInFridge($fridgeId)
+{
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "SELECT * FROM `item` WHERE `fridge` = ?;";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("i", $fridgeId);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$result = $stmt->get_result();
+	if ($result->num_rows <= 0) {
+		http_response_code(404);
+		exit();
+	}
+
+	$rows = [];
+	while ($row = $result->fetch_assoc()) {
+		$rows[] = $row;
+	}
+
+	http_response_code(200);
+	exit(json_encode($rows, JSON_UNESCAPED_UNICODE));
+}
+
 // DOKUMENTACJA
 // Obsługiwane metody HTTP: GET
 //
@@ -131,8 +188,6 @@ function getFridge()
 //                   }
 //                  ...
 //               ]
-//           403 -> (puste) - Brak dostępu. Użytkownik nie jest zalogowany.
-//           405 -> (puste) - Nieobsługiwana metoda http.
 //           404 -> (puste) - Lodówka o podanych parametrach nie istnieje.
 //           500 -> JSON - Błąd SQL lub bazy danych w formacie:
 //               {

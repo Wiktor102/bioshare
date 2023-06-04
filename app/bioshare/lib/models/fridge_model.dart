@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 
 class FridgeModel extends ChangeNotifier {
   final List<Fridge> _fridges = [];
@@ -22,17 +25,107 @@ class FridgeModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fetches fridges from the database and saves them to the [_fridges] variable
+  Future<void> _fetchFridges() async {
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php");
+    }
+
+    try {
+      final http.Response response = await http.get(uri);
+
+      if (response.body == "") {
+        throw Exception(response.statusCode);
+      }
+
+      dynamic decodedResponse;
+
+      try {
+        decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      } catch (e) {
+        throw Exception(e);
+      }
+
+      if (response.statusCode != 200) {
+        print(response.statusCode);
+        throw Exception(decodedResponse["error"]);
+      }
+
+      decodedResponse = decodedResponse as List<dynamic>;
+      for (var value in decodedResponse) {
+        _fridges.add(Fridge(
+          id: int.parse(value["id"]),
+          name: value["name"],
+          adminId: int.parse(value["admin"]),
+          location: LatLng(double.parse(value["lat"]), double.parse(value["lng"])),
+          description: value["description"],
+          availableItems: null,
+          adminUsername: "Test",
+          test: true,
+        ));
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> fetchFridgeItems(int fridgeId) async {
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php/$fridgeId/items");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php/$fridgeId/items");
+    }
+
+    try {
+      final http.Response response = await http.get(uri);
+
+      if (response.body == "") {
+        throw Exception(response.statusCode);
+      }
+
+      dynamic decodedResponse;
+
+      try {
+        decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      } catch (e) {
+        throw Exception(e);
+      }
+
+      if (response.statusCode == 400) {
+        _getFridge(fridgeId)?._availableItems = [];
+      }
+
+      if (response.statusCode != 200) {
+        print(response.statusCode);
+        throw Exception(decodedResponse["error"]);
+      }
+
+      decodedResponse = decodedResponse as List<dynamic>;
+      List<Item> updatedItems = [];
+      for (var value in decodedResponse) {
+        updatedItems.add(Item(
+          id: int.parse(value["id"].toString()),
+          name: value["name"],
+          amount: double.parse(value["amount"].toString()),
+          unit: value["unit"],
+          fridgeId: int.parse(value["fridge"].toString()),
+        ));
+      }
+
+      _getFridge(fridgeId)?._availableItems = updatedItems;
+      notifyListeners();
+    } catch (e, stacktrace) {
+      if (kDebugMode) {
+        print('Exception: $e');
+        print('Stacktrace: $stacktrace');
+      }
+    }
+  }
+
   FridgeModel() {
-    _fridges.add(Fridge(
-      id: 1,
-      name: "Lodówka testowa",
-      availableItems: [],
-      adminId: 1,
-      adminUsername: "Test",
-      location: LatLng(50, 20),
-      description: "Something",
-      test: true,
-    ));
+    _fetchFridges();
   }
 }
 
@@ -44,27 +137,41 @@ class Fridge {
   String? description;
   LatLng location;
   String? address;
-  List<Item> availableItems;
+  List<Item>? _availableItems;
   bool test;
+  DateTime? lastUpdatedItems;
+
+  List<Item>? get availableItems => _availableItems;
+  set availableItems(List<Item>? newValue) {
+    _availableItems = newValue;
+    lastUpdatedItems = DateTime.now();
+  }
 
   Fridge({
     required this.id,
     required this.name,
-    required this.availableItems,
+    required List<Item>? availableItems,
     required this.adminId,
     required this.adminUsername,
     required this.location,
     this.address,
     this.description,
     this.test = false,
-  });
+  }) : _availableItems = availableItems {
+    if (_availableItems != null) {
+      lastUpdatedItems = DateTime.now();
+    }
+  }
 
   addItem(Item item) {
-    if (availableItems.asMap().keys.toList().contains(item.id)) {
+    _availableItems ??= [];
+    lastUpdatedItems = DateTime.now();
+
+    if (_availableItems!.asMap().keys.toList().contains(item.id)) {
       return;
     }
 
-    availableItems.add(item);
+    _availableItems!.add(item);
   }
 }
 

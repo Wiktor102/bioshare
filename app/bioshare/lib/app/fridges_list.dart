@@ -10,11 +10,9 @@ import '../common/app_background.dart';
 import '../models/fridge_model.dart';
 
 class FridgesList extends StatelessWidget {
-  final Function() goToLogin;
   final List<Fridge> fridges;
 
   const FridgesList({
-    required this.goToLogin,
     required this.fridges,
     super.key,
   });
@@ -26,10 +24,7 @@ class FridgesList extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         child: ListView.separated(
           itemCount: fridges.length,
-          itemBuilder: (context, i) => FridgeCard(
-            goToLogin: goToLogin,
-            fridge: fridges[i],
-          ),
+          itemBuilder: (context, i) => FridgeCard(fridge: fridges[i]),
           separatorBuilder: (context, index) => const SizedBox(
             height: 10,
           ),
@@ -40,17 +35,16 @@ class FridgesList extends StatelessWidget {
 }
 
 class FridgeCard extends StatelessWidget {
-  final Function() goToLogin;
   final Fridge fridge;
 
-  const FridgeCard({required this.goToLogin, required this.fridge, super.key});
+  const FridgeCard({required this.fridge, super.key});
 
   goToDetails(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => FridgeDetails(
+        builder: (context) => FridgeDetails(
           fridge: fridge,
-          goToLogin: goToLogin,
+          provider: Provider.of<FridgeModel>(context),
         ),
       ),
     );

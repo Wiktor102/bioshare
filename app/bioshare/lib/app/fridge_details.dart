@@ -1,4 +1,5 @@
 import 'package:bioshare/app/add_product.dart';
+import 'package:bioshare/common/conditional_parent_widget.dart';
 import 'package:bioshare/common/custom_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
@@ -10,22 +11,39 @@ import './app_bar.dart';
 import '../common/app_background.dart';
 import '../common/expandable_list_view.dart';
 
-class FridgeDetails extends StatelessWidget {
-  final Function() goToLogin;
+class FridgeDetails extends StatefulWidget {
   final Fridge fridge;
-  final int length = 10;
+  final FridgeModel provider;
 
   const FridgeDetails({
     required this.fridge,
-    required this.goToLogin,
+    required this.provider,
     super.key,
   });
+
+  @override
+  State<FridgeDetails> createState() => _FridgeDetailsState();
+}
+
+class _FridgeDetailsState extends State<FridgeDetails> {
+  Future<void>? itemsFetchFuture;
+
+  @override
+  initState() {
+    final timePassed =
+        DateTime.now().difference(widget.fridge.lastUpdatedItems ?? DateTime.now()) >= const Duration(minutes: 30);
+
+    if (widget.fridge.availableItems == null || timePassed) {
+      itemsFetchFuture = widget.provider.fetchFridgeItems(widget.fridge.id);
+    }
+    super.initState();
+  }
 
   directions() async {
     final availableMaps = await MapLauncher.installedMaps;
     await availableMaps.first.showMarker(
-      coords: Coords(fridge.location.latitude, fridge.location.longitude),
-      title: fridge.name,
+      coords: Coords(widget.fridge.location.latitude, widget.fridge.location.longitude),
+      title: widget.fridge.name,
     );
   }
 
@@ -61,7 +79,7 @@ class FridgeDetails extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddProduct(fridgeId: fridge.id),
+        builder: (context) => AddProduct(fridgeId: widget.fridge.id),
       ),
     );
   }
@@ -90,7 +108,7 @@ class FridgeDetails extends StatelessWidget {
                       height: 170,
                       child: FlutterMap(
                         options: MapOptions(
-                          center: fridge.location,
+                          center: widget.fridge.location,
                           zoom: 15,
                           minZoom: 6,
                           maxZoom: 17,
@@ -114,7 +132,7 @@ class FridgeDetails extends StatelessWidget {
                           MarkerLayer(
                             markers: [
                               Marker(
-                                point: fridge.location,
+                                point: widget.fridge.location,
                                 width: 35,
                                 height: 35,
                                 builder: (context) => const Image(image: AssetImage("assets/pinBlue.png")),
@@ -124,16 +142,16 @@ class FridgeDetails extends StatelessWidget {
                         ],
                       ),
                     ),
-                    fridge.address != null
+                    widget.fridge.address != null
                         ? Align(
                             alignment: Alignment.centerLeft,
                             child: Padding(
                               padding: const EdgeInsets.only(top: 10, left: 15, right: 15),
-                              child: Text(fridge.address ?? ""),
+                              child: Text(widget.fridge.address ?? ""),
                             ),
                           )
                         : Container(),
-                    fridge.test
+                    widget.fridge.test
                         ? Align(
                             alignment: Alignment.bottomLeft,
                             child: Container(
@@ -192,42 +210,59 @@ class FridgeDetails extends StatelessWidget {
                 CustomCard(
                   title: "Dostępne produkty",
                   children: [
-                    fridge.availableItems.isNotEmpty
-                        ? ExpandableListView(
-                            itemCount: fridge.availableItems.length,
-                            visibleItemCount: fridge.availableItems.length < 3 ? fridge.availableItems.length : 3,
-                            itemBuilder: (context, i) {
-                              final Item item = fridge.availableItems[i];
-                              return ListTile(
-                                contentPadding: const EdgeInsets.only(left: 20, right: 0),
-                                title: Text(item.name),
-                                trailing: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(context).colorScheme.primary,
-                                        foregroundColor: Colors.white,
+                    ConditionalParentWidget(
+                      condition: itemsFetchFuture != null,
+                      conditionalBuilder: (Widget child) => FutureBuilder(
+                        future: itemsFetchFuture,
+                        builder: (context, AsyncSnapshot<void> snapshot) =>
+                            snapshot.connectionState == ConnectionState.waiting
+                                ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 20),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                : child,
+                      ),
+                      child: !(widget.fridge.availableItems == null || widget.fridge.availableItems!.isEmpty)
+                          ? ExpandableListView(
+                              itemCount: widget.fridge.availableItems!.length,
+                              visibleItemCount: widget.fridge.availableItems!.length < 3
+                                  ? widget.fridge.availableItems!.length
+                                  : 3,
+                              itemBuilder: (context, i) {
+                                final Item item = widget.fridge.availableItems![i];
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.only(left: 20, right: 0),
+                                  title: Text(item.name),
+                                  trailing: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {},
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context).colorScheme.primary,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        child: const Text("Biorę"),
                                       ),
-                                      child: const Text("Biorę"),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.more_vert),
-                                      onPressed: () => showItemOptions(context, item),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, index) => Divider(
-                              color: Theme.of(context).primaryColorLight,
-                              thickness: 1.0,
-                              height: 0.0,
-                            ),
-                          )
-                        : Empty(addProduct),
+                                      IconButton(
+                                        icon: const Icon(Icons.more_vert),
+                                        onPressed: () => showItemOptions(context, item),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              separatorBuilder: (context, index) => Divider(
+                                color: Theme.of(context).primaryColorLight,
+                                thickness: 1.0,
+                                height: 0.0,
+                              ),
+                            )
+                          : Empty(addProduct),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -239,7 +274,7 @@ class FridgeDetails extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 15, right: 10, bottom: 20),
                         child: Text(
-                          fridge.description ?? "Administrator nie dodał opisu",
+                          widget.fridge.description ?? "Administrator nie dodał opisu",
                           textAlign: TextAlign.left,
                           style: TextStyle(
                             color: Colors.black.withAlpha(160),

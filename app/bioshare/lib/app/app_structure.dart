@@ -28,14 +28,9 @@ class _AppStructureState extends State<AppStructure> {
     final FridgeModel provider = Provider.of<FridgeModel>(context);
 
     final List<Widget> screens = [
-      FridgesList(
-        goToLogin: widget.goToLogin,
-        fridges: provider.fridges,
-      ),
+      FridgesList(fridges: provider.fridges),
       const Text("Tab 2"),
-      MyFridges(
-        goToLogin: widget.goToLogin,
-      ),
+      MyFridges(goToLogin: widget.goToLogin),
     ];
 
     return Scaffold(
