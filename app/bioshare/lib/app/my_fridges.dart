@@ -1,3 +1,4 @@
+import 'package:bioshare/common/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +29,10 @@ class MyFridges extends StatelessWidget {
         return FutureBuilder(
             future: provider.getMyFridges(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) return const CircularProgressIndicator();
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const AppBackground(child: Center(child: CircularProgressIndicator()));
+              }
+
               return FridgesList(
                 fridges: snapshot.data ?? [],
                 listType: FridgeListType.admin,
