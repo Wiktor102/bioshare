@@ -49,7 +49,7 @@ class _CreateFridgeState extends State<CreateFridge> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Podaj lokalizację"),
-          content: const Text("Użyj mapy alby wskazać gdzie dokładnie znajduje sie lodówka"),
+          content: const Text("Użyj mapy aby wskazać gdzie dokładnie znajduje się lodówka"),
           actions: <Widget>[
             TextButton(
               child: const Text('Ok'),
@@ -116,6 +116,7 @@ class _CreateFridgeState extends State<CreateFridge> {
       }
 
       if (response.statusCode == 200) {
+        final String username = await App.secureStorage.read(key: "username") ?? "?";
         final Fridge newFridge = Fridge(
             id: decodedResponse["id"],
             name: decodedResponse["name"],
@@ -123,7 +124,7 @@ class _CreateFridgeState extends State<CreateFridge> {
             location: LatLng(decodedResponse["location"][0], decodedResponse["location"][1]),
             description: decodedResponse["description"],
             availableItems: [],
-            adminUsername: "Test Username",
+            adminUsername: username,
             test: test);
 
         if (context.mounted) {

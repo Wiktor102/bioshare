@@ -20,10 +20,12 @@ class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
 
   String email = "";
+  String username = "";
   String password = "";
   String password2 = "";
 
   String? emailError;
+  String? usernameError;
   String? passwordError;
   String? password2Error;
 
@@ -47,8 +49,34 @@ class _SignupPageState extends State<SignupPage> {
       uri = Uri.parse("http://192.168.1.66:4000/auth/signUp.php");
     }
 
+    if (email.isEmpty) {
+      emailError = "Podaj adres e-mail";
+    }
+
+    if (username.isEmpty) {
+      usernameError = "Wymyśl nazwę użytkownika";
+    }
+
+    if (username.contains("@")) {
+      usernameError = "Nazwa nie może zawierać @";
+    }
+
+    if (username.length > 70) {
+      usernameError = "Za długa nazwa (max. 70 znaków)";
+    }
+
+    if (password.isEmpty) {
+      passwordError = "Wymyśl hasło";
+    }
+
+    if (emailError != null || usernameError != null || passwordError != null) {
+      validateForm();
+      return;
+    }
+
     final String body = json.encode({
       "mail": email,
+      "username": username,
       "password": password,
       "password2": password2,
       "terms": true, // akceptacja regulaminu
@@ -69,13 +97,17 @@ class _SignupPageState extends State<SignupPage> {
         throw Exception(response.body);
       }
 
-      if (response.statusCode == 400) {
+      if (response.statusCode == 400 || response.statusCode == 409) {
         setState(() {
           for (var error in decodedResponse["errors"]) {
             switch (error["type"]) {
               case "mail":
                 if (emailError != null) break;
                 emailError = error["error"];
+                break;
+              case "username":
+                if (usernameError != null) break;
+                usernameError = error["error"];
                 break;
               case "password":
                 if (passwordError != null) break;
@@ -89,11 +121,6 @@ class _SignupPageState extends State<SignupPage> {
             }
           }
         });
-      }
-
-      if (response.statusCode == 409) {
-        if (!context.mounted) return;
-        showPopup(context, "Wystąpił błąd", "Użytkownik o podanym adresie e-mail już istnieje.");
         return;
       }
 
@@ -108,12 +135,13 @@ class _SignupPageState extends State<SignupPage> {
       showPopup(context, "Rejestracja pomyślna", "Teraz możesz sie zalogować.");
     } catch (e) {
       showPopup(context, "Wystąpił nieznany błąd", "Przepraszamy. Proszę spróbować później.");
-    }
+    } finally {
+      validateForm();
 
-    validateForm();
-    setState(() {
-      loading = false;
-    });
+      setState(() {
+        loading = false;
+      });
+    }
   }
 
   validateForm() => _formKey.currentState!.validate();
@@ -204,6 +232,26 @@ class _SignupPageState extends State<SignupPage> {
                                   height: 20,
                                 ),
                                 TextFormField(
+                                  onSaved: (v) => username = v ?? "",
+                                  validator: (v) => usernameError,
+                                  onChanged: (v) {
+                                    setState(() => usernameError = null);
+                                    validateForm();
+                                  },
+                                  decoration: CustomInputDecoration(
+                                    context,
+                                    labelText: "Nazwa użytkownika",
+                                    hintText: 'Nazwa będzie publiczna',
+                                    prefixIcon: Icon(
+                                      Icons.person,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                TextFormField(
                                   autofillHints: const [AutofillHints.newPassword],
                                   obscureText: true,
                                   obscuringCharacter: '*',
@@ -238,7 +286,7 @@ class _SignupPageState extends State<SignupPage> {
                                   decoration: CustomInputDecoration(
                                     context,
                                     labelText: "Powtórz hasło",
-                                    hintText: 'Wpisz swoje hasło',
+                                    hintText: 'Powtórz hasło',
                                     prefixIcon: Icon(
                                       Icons.lock,
                                       color: Theme.of(context).primaryColor,

@@ -7,6 +7,7 @@ session_start();
 header("Content-Type: application/json; charset=utf-8");
 
 $userId = null;
+$username = null;
 
 $input = file_get_contents("php://input");
 $inputJson = json_decode($input, true);
@@ -92,8 +93,10 @@ function createFridge()
 function getFridge()
 {
 	$conn = connect();
-	$sql =
-		"SELECT `id`, `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description`, `test` FROM `fridge`;";
+	$sql = "SELECT fridge.id, `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description`, `test`, `username` AS `adminUsername`
+        FROM `fridge`
+        JOIN `user` ON user.id = fridge.admin;
+        ";
 
 	if ($result = $conn->query($sql)) {
 		if ($result->num_rows <= 0) {

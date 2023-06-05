@@ -17,6 +17,24 @@ class CustomAppBar extends StatefulWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
+  String username = "";
+  String email = "";
+
+  @override
+  initState() {
+    Future.wait([
+      App.secureStorage.read(key: "username"),
+      App.secureStorage.read(key: "email"),
+    ]).then((values) {
+      setState(() {
+        username = values[0] ?? "";
+        email = values[1] ?? "";
+      });
+    });
+
+    super.initState();
+  }
+
   showProfilePopup(BuildContext context) {
     showDialog(
       context: context,
@@ -43,7 +61,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                     const Align(
                       child: Image(
                         height: 30,
-                        image: NetworkImage("https://logoipsum.com/logoipsum.png"),
+                        image: AssetImage("assets/logoBaner50y.png"),
                       ),
                     ),
                   ],
@@ -63,14 +81,14 @@ class _CustomAppBarState extends State<CustomAppBar> {
                           borderRadius: BorderRadius.circular(20),
                           child: Column(
                             children: [
-                              const ListTile(
+                              ListTile(
                                 leading: ProfilePicture(
-                                  name: 'Wiktor',
+                                  name: username,
                                   radius: 20,
                                   fontsize: 22,
                                 ),
-                                title: Text("Wiktor Golicz"),
-                                subtitle: Text("wiktorgolicz@gmail.com"),
+                                title: Text(username),
+                                subtitle: Text(email),
                               ),
                               Container(
                                 height: 3,
@@ -133,8 +151,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
       actions: [
         IconButton(
           onPressed: () => showProfilePopup(context),
-          icon: const ProfilePicture(
-            name: 'Wiktor',
+          icon: ProfilePicture(
+            name: username,
             radius: 13,
             fontsize: 14,
           ),

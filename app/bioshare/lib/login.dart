@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:jwt_decode/jwt_decode.dart';
 import 'package:provider/provider.dart';
 import "common/custom_input_decoration.dart";
 import "./utils/show_popup.dart";
@@ -82,6 +83,9 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception(decodedResponse.error);
       } else {
         String token = decodedResponse["token"];
+        final Map<String, dynamic> decodedJWT = Jwt.parseJwt(token);
+        await App.secureStorage.write(key: "username", value: decodedJWT["preferred_username"]);
+        await App.secureStorage.write(key: "email", value: decodedJWT["email"]);
         await App.secureStorage.write(key: "jwt", value: token);
 
         stopwatch.stop();
@@ -199,10 +203,10 @@ class _LoginPageState extends State<LoginPage> {
                                   onSaved: (v) => email = v ?? "",
                                   decoration: CustomInputDecoration(
                                     context,
-                                    labelText: "E-mail",
-                                    hintText: 'Wpisz swój adres e-mail',
+                                    labelText: "Nazwa użytkownika lub e-mail",
+                                    hintText: '',
                                     prefixIcon: Icon(
-                                      Icons.email,
+                                      Icons.person,
                                       color: Theme.of(context).primaryColor,
                                     ),
                                   ),

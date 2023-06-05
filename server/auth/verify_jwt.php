@@ -20,6 +20,7 @@ function verifyJWT()
 		$decodedToken = JWT::decode($jwt, new Key($jwtSecretKey, "HS256"));
 		return [
 			"userId" => $decodedToken->user_id,
+			"username" => $decodedToken->preferred_username,
 			"exp" => $decodedToken->exp,
 		];
 	} catch (Exception $e) {

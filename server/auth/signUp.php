@@ -19,7 +19,7 @@ function main()
 	// sendVerificationEmail($credentials["lang"], $credentials["mail"], $verificationCode);
 
 	$passwordHash = password_hash($credentials["password"], PASSWORD_DEFAULT);
-	createUser($credentials["mail"], $passwordHash);
+	createUser($credentials["mail"], $credentials["username"], $passwordHash);
 	http_response_code(200);
 	exit(json_encode(["userId" => $_SESSION["userId"]]));
 }
@@ -27,11 +27,11 @@ function main()
 /**
  * Tworzy użytkownika w bazie danych
  */
-function createUser($mail, $passwordHash)
+function createUser($mail, $username, $passwordHash)
 {
 	$conn = connect();
 	$stmt = $conn->stmt_init();
-	$sql = "INSERT INTO `user` (`email`, `password`)  VALUES (?, ?);";
+	$sql = "INSERT INTO `user` (`email`, `username`, `password`)  VALUES (?, ?, ?);";
 
 	if (!$stmt->prepare($sql)) {
 		$msg = json_encode(
@@ -46,7 +46,7 @@ function createUser($mail, $passwordHash)
 		exit($msg);
 	}
 
-	$stmt->bind_param("ss", $mail, $passwordHash);
+	$stmt->bind_param("sss", $mail, $username, $passwordHash);
 
 	try {
 		if ($stmt->execute()) {
@@ -57,15 +57,23 @@ function createUser($mail, $passwordHash)
 		}
 	} catch (Exception $e) {
 		if ($conn->errno === 1062) {
-			$msg = json_encode(
-				[
-					"error" => $stmt->error,
-					"type" => "dbError",
-				],
-				JSON_UNESCAPED_UNICODE
-			);
+			$errors = [];
+			if (str_contains($stmt->error, "username")) {
+				$errors[] = [
+					"error" => "Ta nazwa jest już zajęta",
+					"type" => "username",
+				];
+			}
+
+			if (str_contains($stmt->error, "email")) {
+				$errors[] = [
+					"error" => "Użytkownik o tym adresie już istnieje",
+					"type" => "mail",
+				];
+			}
+
 			http_response_code(409);
-			exit($msg);
+			exit(json_encode(["errors" => $errors]));
 		}
 
 		$msg = json_encode(
@@ -103,7 +111,28 @@ function verify($credentials)
 		]);
 	}
 
-	if (strlen($credentials["password"]) <= 0) {
+	if (strlen($credentials["username"]) == 0) {
+		array_push($errors, [
+			"error" => "Wymyśl nazwę użytkownika",
+			"type" => "username",
+		]);
+	}
+
+	if (str_contains($credentials["username"], "@")) {
+		array_push($errors, [
+			"error" => "Nazwa nie może zawierać @",
+			"type" => "username",
+		]);
+	}
+
+	if (strlen($credentials["username"]) > 70) {
+		array_push($errors, [
+			"error" => "Za długa nazwa (max. 70 znaków)",
+			"type" => "username",
+		]);
+	}
+
+	if (strlen($credentials["password"]) == 0) {
 		array_push($errors, [
 			"error" => "Należy podać hasło",
 			"type" => "password",

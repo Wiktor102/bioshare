@@ -17,6 +17,7 @@ class FridgeModel extends ChangeNotifier {
     }
 
     _fridges.add(newFridge);
+    notifyListeners();
   }
 
   Fridge? _getFridge(int id) {
@@ -43,7 +44,6 @@ class FridgeModel extends ChangeNotifier {
     final String? jwt = await App.secureStorage.read(key: "jwt");
     if (jwt == null) return [];
     final Map<String, dynamic> decodedJWT = Jwt.parseJwt(jwt);
-    print(decodedJWT);
 
     return _fridges.where((element) => element.adminId == decodedJWT["user_id"]).toList();
   }
@@ -84,14 +84,15 @@ class FridgeModel extends ChangeNotifier {
           location: LatLng(double.parse(value["lat"]), double.parse(value["lng"])),
           description: value["description"],
           availableItems: null,
-          adminUsername: "Test",
+          adminUsername: value["adminUsername"],
           test: value["test"] == "1", // MariaDB returns "0" or "1" so we need to convert it to bool
         ));
       }
 
       notifyListeners();
-    } catch (e) {
+    } catch (e, stack) {
       print(e);
+      print(stack);
     }
   }
 

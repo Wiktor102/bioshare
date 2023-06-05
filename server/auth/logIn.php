@@ -15,6 +15,7 @@ function main()
 	}
 
 	$mail = $credentials["mail"];
+	$loginType = str_contains($mail, "@") ? "email" : "username";
 	$userData = getUserData($mail);
 
 	$correctPasswordHash = $userData["password"];
@@ -34,14 +35,14 @@ function main()
 
 	// W przyszłości tutaj sprawdzać czy e-mail jest zweryfikowany
 
-	exit(json_encode(generateToken($userData["id"])));
+	exit(json_encode(generateToken($userData)));
 }
 
 function getUserData($mail)
 {
 	$conn = connect();
 	$stmt = $conn->stmt_init();
-	$sql = "SELECT * FROM `user` WHERE `email` = ?;";
+	$sql = "SELECT * FROM `user` WHERE (`email` = ? OR `username` = ?);";
 
 	if (!$stmt->prepare($sql)) {
 		$msg = json_encode(
@@ -56,7 +57,7 @@ function getUserData($mail)
 		exit($msg);
 	}
 
-	$stmt->bind_param("s", $mail);
+	$stmt->bind_param("ss", $mail, $mail);
 
 	if ($stmt->execute()) {
 		$result = $stmt->get_result();
@@ -89,12 +90,14 @@ function getUserData($mail)
 	}
 }
 
-function generateToken($user_id)
+function generateToken($userData)
 {
 	$jwtSecretKey = file_get_contents("./.jwt-secret");
 	$expirationTime = time() + 60 * 60; // 1 hour
 	$payload = [
-		"user_id" => $user_id,
+		"user_id" => $userData["id"], // According to the [spec](https://www.iana.org/assignments/jwt/jwt.xhtml) it should be called "sub"
+		"preferred_username" => $userData["username"],
+		"email" => $userData["email"],
 		"exp" => $expirationTime,
 	];
 
