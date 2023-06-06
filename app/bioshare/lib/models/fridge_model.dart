@@ -20,6 +20,10 @@ class FridgeModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> editFridgeDescription(int fridgeId, String newDescription) async {
+    await _getFridge(fridgeId)?.editDescription(newDescription, notifyListeners);
+  }
+
   Fridge? _getFridge(int id) {
     return _fridges.firstWhere((element) => element.id == id);
   }
@@ -190,7 +194,58 @@ class Fridge {
     }
   }
 
-  addItem(Item item) {
+  Future<void> editDescription(String newDescription, VoidCallback notifyListeners) async {
+    final oldDescription = description;
+    description = newDescription;
+    notifyListeners();
+
+    final body = json.encode({"description": newDescription});
+
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php/$id");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php/$id");
+    }
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      return;
+    }
+
+    try {
+      final http.Response response = await http.patch(
+        uri,
+        body: body,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        description = oldDescription;
+        notifyListeners();
+
+        if (response.body == "") {
+          throw Exception(response.statusCode);
+        }
+
+        print(response.statusCode);
+        dynamic decodedResponse;
+
+        try {
+          decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        } catch (e) {
+          throw Exception(e);
+        }
+
+        throw Exception(decodedResponse["error"]);
+      }
+    } catch (e, stack) {
+      print(e);
+      print(stack);
+    }
+  }
+
+  void addItem(Item item) {
     _availableItems ??= [];
     lastUpdatedItems = DateTime.now();
 

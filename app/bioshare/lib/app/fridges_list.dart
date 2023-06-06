@@ -54,6 +54,7 @@ class FridgeCard extends StatelessWidget {
         builder: (context) => FridgeDetails(
           fridge: fridge,
           provider: Provider.of<FridgeModel>(context),
+          type: tileType == FridgeListType.normal ? FridgeDetailsType.normal : FridgeDetailsType.admin,
         ),
       ),
     );

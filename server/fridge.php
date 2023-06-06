@@ -27,6 +27,18 @@ switch ($method) {
 		}
 
 		createFridge();
+	case "PATCH":
+		if (is_numeric($request[0])) {
+			$credentials = verifyJWT();
+			$userId = $credentials["userId"];
+
+			if ($inputJson == null) {
+				http_response_code(400);
+				exit();
+			}
+
+			updateDescription($request[0], $inputJson["description"]);
+		}
 	case "GET":
 		if ($request[0] == "") {
 			getFridge();
@@ -172,6 +184,50 @@ function getItemsInFridge($fridgeId)
 
 	http_response_code(200);
 	exit(json_encode($rows, JSON_UNESCAPED_UNICODE));
+}
+
+function updateDescription($fridgeId, $description)
+{
+	global $userId;
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "UPDATE `fridge` SET `description` = ? WHERE `id` = ? AND `admin` = ?";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("sii", $description, $fridgeId, $userId);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	if ($stmt->affected_rows == 0) {
+		http_response_code(404);
+		exit();
+	}
+
+	http_response_code(200);
+	exit();
 }
 
 // DOKUMENTACJA

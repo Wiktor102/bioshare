@@ -189,6 +189,14 @@ class _CreateFridgeState extends State<CreateFridge> {
                   const SizedBox(height: 20),
                   TextFormField(
                     onSaved: (newValue) => description = (newValue ?? ""),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (value) {
+                      if ((value?.length ?? 0) > 1000) {
+                        return "Max. 1000 znaków";
+                      }
+
+                      return null;
+                    },
                     maxLines: null,
                     decoration: gedInputDecoration(
                       context,
