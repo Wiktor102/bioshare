@@ -26,10 +26,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
       App.secureStorage.read(key: "username"),
       App.secureStorage.read(key: "email"),
     ]).then((values) {
-      setState(() {
-        username = values[0] ?? "";
-        email = values[1] ?? "";
-      });
+      if (mounted) {
+        setState(() {
+          username = values[0] ?? "";
+          email = values[1] ?? "";
+        });
+      }
     });
 
     super.initState();
