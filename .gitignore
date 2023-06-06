@@ -47,4 +47,5 @@ connect.php
 validateRequest.php
 server/vendor/
 .jwt-secret
+.refresh-secret
 assetProjects/
