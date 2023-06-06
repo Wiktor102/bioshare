@@ -132,6 +132,48 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     toggleEditDescriptionMode();
   }
 
+  deleteFridge(BuildContext context) async {
+    if (widget.type == FridgeDetailsType.normal) return;
+    bool result = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Czy na pewno chcesz usunąć tą lodówkę?"),
+        content: const Text(
+            "Razem z lodówką zostaną usunięte także wszystkie znajdujące się w niej rzeczy. Ta operacja nie może być cofnięta."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              result = false;
+              Navigator.of(context).pop();
+            },
+            child: const Text("Anuluj"),
+          ),
+          TextButton(
+            onPressed: () {
+              result = true;
+              Navigator.of(context).pop();
+            },
+            child: const Text("Usuń"),
+          )
+        ],
+      ),
+    );
+
+    if (!result) {
+      return;
+    }
+
+    if (context.mounted) {
+      final provider = Provider.of<FridgeModel>(context, listen: false);
+      bool success = await provider.deleteFridge(widget.fridge.id);
+      if (success && context.mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -416,13 +458,20 @@ class _FridgeDetailsState extends State<FridgeDetails> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => addProduct(context),
-            label: const Text("Podziel się"),
-            icon: const Icon(Icons.add),
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Colors.white,
-          ),
+          floatingActionButton: widget.type == FridgeDetailsType.normal
+              ? FloatingActionButton.extended(
+                  onPressed: () => addProduct(context),
+                  label: const Text("Podziel się"),
+                  icon: const Icon(Icons.add),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  foregroundColor: Colors.white,
+                )
+              : FloatingActionButton(
+                  onPressed: () => deleteFridge(context),
+                  backgroundColor: const Color.fromARGB(255, 202, 45, 34),
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.delete_forever_outlined),
+                ),
         ),
       ),
     );

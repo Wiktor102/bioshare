@@ -11,6 +11,10 @@ class FridgeModel extends ChangeNotifier {
   final List<Fridge> _fridges = [];
   get fridges => _fridges;
 
+  Fridge? _getFridge(int id) {
+    return _fridges.firstWhere((element) => element.id == id);
+  }
+
   void addFridge(Fridge newFridge) {
     if (_fridges.asMap().keys.toList().contains(newFridge.id)) {
       return;
@@ -20,12 +24,55 @@ class FridgeModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> editFridgeDescription(int fridgeId, String newDescription) async {
-    await _getFridge(fridgeId)?.editDescription(newDescription, notifyListeners);
+  Future<bool> deleteFridge(int id) async {
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php/$id");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php/$id");
+    }
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      return false;
+    }
+
+    try {
+      final http.Response response = await http.delete(
+        uri,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _fridges.removeWhere((element) => element.id == id);
+        notifyListeners();
+        return true;
+      }
+
+      if (response.body == "") {
+        throw Exception(response.statusCode);
+      }
+
+      print(response.statusCode);
+      dynamic decodedResponse;
+
+      try {
+        decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      } catch (e) {
+        throw Exception(e);
+      }
+
+      throw Exception(decodedResponse["error"]);
+    } catch (e, stack) {
+      print(e);
+      print(stack);
+    }
+
+    return false;
   }
 
-  Fridge? _getFridge(int id) {
-    return _fridges.firstWhere((element) => element.id == id);
+  Future<void> editFridgeDescription(int fridgeId, String newDescription) async {
+    await _getFridge(fridgeId)?.editDescription(newDescription, notifyListeners);
   }
 
   void addItem(int id, Item newItem) {

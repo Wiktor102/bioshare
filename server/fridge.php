@@ -17,6 +17,14 @@ $request = explode("/", substr(@$_SERVER["PATH_INFO"], 1));
 $query = $_SERVER["QUERY_STRING"];
 
 switch ($method) {
+	case "GET":
+		if ($request[0] == "") {
+			getFridge();
+		}
+
+		if (is_numeric($request[0]) && $request[1] == "items") {
+			getItemsInFridge($request[0]);
+		}
 	case "POST":
 		$credentials = verifyJWT();
 		$userId = $credentials["userId"];
@@ -39,13 +47,12 @@ switch ($method) {
 
 			updateDescription($request[0], $inputJson["description"]);
 		}
-	case "GET":
-		if ($request[0] == "") {
-			getFridge();
-		}
+	case "DELETE":
+		if (is_numeric($request[0])) {
+			$credentials = verifyJWT();
+			$userId = $credentials["userId"];
 
-		if (is_numeric($request[0]) && $request[1] == "items") {
-			getItemsInFridge($request[0]);
+			deleteFridge($request[0]);
 		}
 	default:
 		http_response_code(405);
@@ -207,6 +214,50 @@ function updateDescription($fridgeId, $description)
 	}
 
 	$stmt->bind_param("sii", $description, $fridgeId, $userId);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	if ($stmt->affected_rows == 0) {
+		http_response_code(404);
+		exit();
+	}
+
+	http_response_code(200);
+	exit();
+}
+
+function deleteFridge($fridgeId)
+{
+	global $userId;
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "DELETE FROM `fridge` WHERE `id` = ? AND `admin` = ?";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("ii", $fridgeId, $userId);
 
 	if (!$stmt->execute()) {
 		$msg = json_encode(
