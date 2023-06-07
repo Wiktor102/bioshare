@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import './fridges_list.dart';
+import './search.dart';
 import './app_bar.dart';
 import "./bottom_nav.dart";
 import './my_fridges.dart';
@@ -29,7 +30,7 @@ class _AppStructureState extends State<AppStructure> {
 
     final List<Widget> screens = [
       FridgesList(fridges: provider.fridges),
-      const Text("Tab 2"),
+      const Search(),
       const MyFridges(),
     ];
 

@@ -3,6 +3,7 @@ import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
+import '../common/conditional_parent_widget.dart';
 import '../models/location_model.dart';
 import './fridge_details.dart';
 import '../utils/calc_distance.dart';
@@ -14,16 +15,20 @@ enum FridgeListType { normal, admin }
 class FridgesList extends StatelessWidget {
   final List<Fridge> fridges;
   final FridgeListType listType;
+  final bool background;
 
   const FridgesList({
     required this.fridges,
     this.listType = FridgeListType.normal,
+    this.background = true,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AppBackground(
+    return ConditionalParentWidget(
+      condition: background,
+      conditionalBuilder: (child) => AppBackground(child: child),
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: ListView.separated(

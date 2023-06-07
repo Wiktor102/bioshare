@@ -22,6 +22,16 @@ switch ($method) {
 			getFridge();
 		}
 
+		if ($request[0] == "search") {
+			if (!isset($_GET["q"])) {
+				http_response_code(422);
+				exit();
+			}
+
+			verifyJWT();
+			searchForFridges();
+		}
+
 		if (is_numeric($request[0]) && $request[1] == "items") {
 			getItemsInFridge($request[0]);
 		}
@@ -279,6 +289,63 @@ function deleteFridge($fridgeId)
 
 	http_response_code(200);
 	exit();
+}
+
+function searchForFridges()
+{
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "SELECT fridge.id AS `id`, fridge.name AS `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description`, `test`, `username` AS `adminUsername`
+        FROM `fridge`
+        JOIN `user` ON user.id = fridge.admin
+        JOIN `item` ON item.fridge = fridge.id
+        WHERE fridge.name LIKE CONCAT(?, '%')
+        OR item.name LIKE CONCAT('%', ?, '%')
+        LIMIT 15;
+        ";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$query = addcslashes($_GET["q"], "%_");
+	$stmt->bind_param("ss", $query, $query);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$result = $stmt->get_result();
+	if ($result->num_rows <= 0) {
+		http_response_code(404);
+		exit();
+	}
+
+	$rows = [];
+	while ($row = $result->fetch_assoc()) {
+		$rows[] = $row;
+	}
+
+	http_response_code(200);
+	exit(json_encode($rows, JSON_UNESCAPED_UNICODE));
 }
 
 // DOKUMENTACJA

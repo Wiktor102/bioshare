@@ -9,19 +9,94 @@ import '../main.dart';
 
 class FridgeModel extends ChangeNotifier {
   final List<Fridge> _fridges = [];
+  final List<int> _fridgeIds = [];
   get fridges => _fridges;
 
+  Fridge? getFridge(int id) => _getFridge(id);
   Fridge? _getFridge(int id) {
     return _fridges.firstWhere((element) => element.id == id);
   }
 
   void addFridge(Fridge newFridge) {
-    if (_fridges.asMap().keys.toList().contains(newFridge.id)) {
+    if (_fridgeIds.contains(newFridge.id)) {
       return;
     }
 
     _fridges.add(newFridge);
+    _fridgeIds.add(newFridge.id);
     notifyListeners();
+  }
+
+  List<Fridge> addFridgesFromApiResponse(List<dynamic> list) {
+    List<Fridge> listAsFridges = [];
+    for (var value in list) {
+      final f = Fridge(
+        id: value["id"] is int ? value["id"] : int.parse(value["id"]),
+        name: value["name"],
+        adminId: value["admin"] is int ? value["admin"] : int.parse(value["admin"]),
+        location: LatLng(double.parse('${value["lat"]}'), double.parse('${value["lng"]}')),
+        description: value["description"] == "" ? null : value["description"],
+        availableItems: null,
+        adminUsername: value["adminUsername"],
+        test: value["test"] == "1", // MariaDB returns "0" or "1" so we need to convert it to bool
+      );
+
+      listAsFridges.add(f);
+      addFridge(f);
+    }
+    return listAsFridges;
+  }
+
+  void addItem(int id, Item newItem) {
+    _getFridge(id)?.addItem(newItem);
+    notifyListeners();
+  }
+
+  Future<List<Fridge>> search(String query) async {
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php/search?q=$query");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php/search?q=$query");
+    }
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      return [];
+    }
+
+    try {
+      final http.Response response = await http.get(
+        uri,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode == 404) {
+        return [];
+      }
+
+      if (response.statusCode != 200 && response.body == "") {
+        throw Exception(response.statusCode);
+      }
+
+      dynamic decodedResponse;
+
+      try {
+        decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      } catch (e) {
+        throw Exception(e);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(decodedResponse["error"]);
+      }
+
+      return addFridgesFromApiResponse(decodedResponse);
+    } catch (e, stack) {
+      print(e);
+      print(stack);
+      return [];
+    }
   }
 
   Future<bool> deleteFridge(int id) async {
@@ -75,11 +150,6 @@ class FridgeModel extends ChangeNotifier {
     await _getFridge(fridgeId)?.editDescription(newDescription, notifyListeners);
   }
 
-  void addItem(int id, Item newItem) {
-    _getFridge(id)?.addItem(newItem);
-    notifyListeners();
-  }
-
   Future<void> deleteItem(int fridgeId, int itemId) async {
     final Fridge? f = _getFridge(fridgeId);
     if (f == null) return;
@@ -126,21 +196,7 @@ class FridgeModel extends ChangeNotifier {
         throw Exception(decodedResponse["error"]);
       }
 
-      decodedResponse = decodedResponse as List<dynamic>;
-      for (var value in decodedResponse) {
-        _fridges.add(Fridge(
-          id: int.parse(value["id"]),
-          name: value["name"],
-          adminId: int.parse(value["admin"]),
-          location: LatLng(double.parse(value["lat"]), double.parse(value["lng"])),
-          description: value["description"],
-          availableItems: null,
-          adminUsername: value["adminUsername"],
-          test: value["test"] == "1", // MariaDB returns "0" or "1" so we need to convert it to bool
-        ));
-      }
-
-      notifyListeners();
+      addFridgesFromApiResponse(decodedResponse);
     } catch (e, stack) {
       print(e);
       print(stack);
@@ -185,10 +241,10 @@ class FridgeModel extends ChangeNotifier {
         updatedItems.add(Item(
           id: int.parse(value["id"].toString()),
           name: value["name"],
-          amount: double.parse(value["amount"].toString()),
+          amount: value["amount"] == null ? null : double.parse(value["amount"].toString()),
           unit: value["unit"],
           fridgeId: int.parse(value["fridge"].toString()),
-          expire: DateTime.parse(value["expire"]),
+          expire: value["expire"] == null ? null : DateTime.parse(value["expire"]),
         ));
       }
 
