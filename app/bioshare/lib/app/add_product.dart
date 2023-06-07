@@ -93,7 +93,7 @@ class _AddProductState extends State<AddProduct> {
           amount: decodedResponse["amount"]?.toDouble(),
           unit: decodedResponse["unit"],
           fridgeId: decodedResponse["fridgeId"],
-          expire: DateTime.parse(decodedResponse["expire"]),
+          expire: decodedResponse["expire"] == null ? null : DateTime.parse(decodedResponse["expire"]),
         );
 
         if (context.mounted) {
@@ -104,8 +104,9 @@ class _AddProductState extends State<AddProduct> {
         print(response.statusCode);
         throw Exception(decodedResponse.error);
       }
-    } catch (e) {
+    } catch (e, s) {
       print(e);
+      print(s);
 
       if (context.mounted) {
         showPopup(context, "Wystąpił nieznany błąd", "Przepraszamy. Proszę spróbować później.");

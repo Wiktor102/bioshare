@@ -326,32 +326,39 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                     : 3,
                                 itemBuilder: (context, i) {
                                   final Item item = widget.fridge.availableItems![i];
-                                  return ListTile(
-                                    contentPadding: const EdgeInsets.only(left: 20, right: 0),
-                                    title: item.amount != null
-                                        ? Text(
-                                            "${item.name} - ${item.amount! % 1 == 0 ? item.amount!.toInt() : item.amount} ${item.unit}")
-                                        : Text(item.name),
-                                    subtitle: item.expire == null
-                                        ? null
-                                        : item.expire!.isAfter(DateTime.now())
-                                            ? Text("Ważne do: ${DateFormat('dd.MM.yyyy').format(item.expire!)}")
-                                            : const Text("Data ważności minęła",
-                                                style: TextStyle(color: Colors.red)),
-                                    trailing: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ElevatedButton(
-                                          onPressed: () => deleteProduct(context, i, null),
-                                          style: _getButtonStyle(context),
-                                          child: const Text("Biorę"),
+                                  return SizedBox(
+                                    height: 70,
+                                    child: Center(
+                                      child: ListTile(
+                                        //   visualDensity: const VisualDensity(vertical: 2),
+                                        contentPadding: const EdgeInsets.only(left: 20, right: 0),
+                                        title: item.amount != null
+                                            ? Text(
+                                                "${item.name} - ${item.amount! % 1 == 0 ? item.amount!.toInt() : item.amount} ${item.unit}")
+                                            : Text(item.name),
+                                        subtitle: item.expire == null
+                                            ? null
+                                            : item.expire!.isAfter(DateTime.now())
+                                                ? Text(
+                                                    "Ważne do: ${DateFormat('dd.MM.yyyy').format(item.expire!)}")
+                                                : const Text("Data ważności minęła",
+                                                    style: TextStyle(color: Colors.red)),
+                                        trailing: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            ElevatedButton(
+                                              onPressed: () => deleteProduct(context, i, null),
+                                              style: _getButtonStyle(context),
+                                              child: const Text("Biorę"),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.more_vert),
+                                              onPressed: () => showItemOptions(context, item),
+                                            ),
+                                          ],
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.more_vert),
-                                          onPressed: () => showItemOptions(context, item),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   );
                                 },
@@ -429,8 +436,9 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                       ],
                                     )
                                   : Text(
-                                      widget.fridge.description ??
-                                          (widget.type == FridgeDetailsType.normal
+                                      widget.fridge.description != null && widget.fridge.description != ""
+                                          ? widget.fridge.description!
+                                          : (widget.type == FridgeDetailsType.normal
                                               ? "Administrator nie dodał opisu"
                                               : "Nie dodano jeszcze opisu"),
                                       textAlign: TextAlign.left,

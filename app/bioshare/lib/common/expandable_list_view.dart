@@ -37,7 +37,7 @@ class _ExpandableListViewState extends State<ExpandableListView> with SingleTick
           duration: animationDuration,
           curve: Curves.easeInOut,
           child: SizedBox(
-            height: isExpanded ? null : widget.visibleItemCount * 65.0,
+            height: isExpanded ? null : widget.visibleItemCount * 70.0,
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -47,17 +47,17 @@ class _ExpandableListViewState extends State<ExpandableListView> with SingleTick
             ),
           ),
         ),
-        ClipRRect(
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(20),
-            bottomRight: Radius.circular(20),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _toggleExpandedState,
-              child: widget.itemCount > widget.visibleItemCount
-                  ? Container(
+        widget.itemCount > widget.visibleItemCount
+            ? ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _toggleExpandedState,
+                    child: Container(
                       padding: const EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
                         border: Border(
@@ -71,11 +71,11 @@ class _ExpandableListViewState extends State<ExpandableListView> with SingleTick
                         isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                         color: Colors.black,
                       ),
-                    )
-                  : Container(),
-            ),
-          ),
-        ),
+                    ),
+                  ),
+                ),
+              )
+            : Container(),
       ],
     );
   }
