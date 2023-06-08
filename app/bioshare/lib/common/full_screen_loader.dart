@@ -75,7 +75,7 @@ class _FullScreenLoaderState extends State<FullScreenLoader> with SingleTickerPr
                 child: ClipPath(
                   clipper: Clipper(),
                   child: Container(
-                    decoration: BoxDecoration(color: Theme.of(context).primaryColorLight),
+                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceVariant),
                   ),
                 ),
               ),
@@ -105,7 +105,7 @@ class _FullScreenLoaderState extends State<FullScreenLoader> with SingleTickerPr
                 "Ładowanie...",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 24,
                   decorationStyle: null,
                 ),
