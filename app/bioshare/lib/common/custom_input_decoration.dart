@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomInputDecoration extends InputDecoration {
-  CustomInputDecoration(context,
-      {Icon? prefixIcon, String? labelText, String? hintText})
+  CustomInputDecoration(context, {IconData? prefixIcon, String? labelText, String? hintText})
       : super(
             focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide.none,
@@ -17,11 +16,15 @@ class CustomInputDecoration extends InputDecoration {
               ),
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Theme.of(context).colorScheme.background,
+            prefixIconColor: Theme.of(context).colorScheme.onSurface,
             labelStyle: TextStyle(
-              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
             ),
-            prefixIcon: prefixIcon,
+            prefixIcon: Icon(
+              prefixIcon,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             labelText: labelText,
             hintText: hintText);
 }

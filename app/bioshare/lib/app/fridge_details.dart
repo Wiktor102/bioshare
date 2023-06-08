@@ -1,6 +1,7 @@
 import 'package:bioshare/app/add_product.dart';
 import 'package:bioshare/common/conditional_parent_widget.dart';
 import 'package:bioshare/common/custom_card.dart';
+import 'package:bioshare/models/theme_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:intl/intl.dart';
@@ -36,10 +37,15 @@ class _FridgeDetailsState extends State<FridgeDetails> {
   String? editedDescription;
   bool editDescriptionMode = false;
 
-  _getButtonStyle(BuildContext context) => ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      );
+  _getButtonStyle(BuildContext context) {
+    final b = Provider.of<ThemeModel>(context).brightness;
+    return ElevatedButton.styleFrom(
+      backgroundColor: b == Brightness.light
+          ? Theme.of(context).colorScheme.primary
+          : Theme.of(context).colorScheme.inversePrimary,
+      foregroundColor: Colors.white,
+    );
+  }
 
   @override
   initState() {
@@ -286,15 +292,21 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                               alignment: Alignment.bottomRight,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                child: ElevatedButton.icon(
-                                  onPressed: directions,
-                                  icon: const Icon(Icons.directions),
-                                  label: const Text("Prowadź"),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Theme.of(context).primaryColor,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
+                                child: Selector<ThemeModel, Brightness>(
+                                    selector: (context, themeProvider) => themeProvider.brightness,
+                                    builder: (context, b, child) {
+                                      return ElevatedButton.icon(
+                                        onPressed: directions,
+                                        icon: const Icon(Icons.directions),
+                                        label: const Text("Prowadź"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: b == Brightness.light
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Theme.of(context).colorScheme.inversePrimary,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                      );
+                                    }),
                               ),
                             ),
                           ],
@@ -330,7 +342,6 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                     height: 70,
                                     child: Center(
                                       child: ListTile(
-                                        //   visualDensity: const VisualDensity(vertical: 2),
                                         contentPadding: const EdgeInsets.only(left: 20, right: 0),
                                         title: item.amount != null
                                             ? Text(
@@ -443,7 +454,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                               : "Nie dodano jeszcze opisu"),
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
-                                        color: Colors.black.withAlpha(160),
+                                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.85),
                                       ),
                                     ),
                             ),

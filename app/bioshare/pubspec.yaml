@@ -50,6 +50,8 @@ dependencies:
     sdk: flutter
   intl: any
   jwt_decode: ^0.3.1
+  package_info_plus: ^4.0.2
+  shared_preferences: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +83,7 @@ flutter:
     - assets/empty.png
     - assets/logoBaner50y.png
     - assets/fridgeSearch.png
+    - assets/fridgeSearchLight.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

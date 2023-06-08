@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bioshare/models/theme_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -247,6 +248,7 @@ class _CreateFridgeState extends State<CreateFridge> {
                         leading: const Icon(Icons.biotech),
                         trailing: Switch(
                           value: test,
+                          activeColor: _getToggleColor(context),
                           onChanged: (newState) => setState(() {
                             test = newState;
                           }),
@@ -282,12 +284,19 @@ class _CreateFridgeState extends State<CreateFridge> {
       fillColor: Colors.white,
       icon: Icon(
         icon,
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.primary,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
     );
+  }
+
+  _getToggleColor(BuildContext context) {
+    final b = Provider.of<ThemeModel>(context).brightness;
+    return b == Brightness.light
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.inversePrimary;
   }
 }

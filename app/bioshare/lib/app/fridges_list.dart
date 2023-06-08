@@ -89,7 +89,7 @@ class FridgeCard extends StatelessWidget {
 
     late String message;
     late IconData icon;
-    Color? color;
+    Color color = Theme.of(context).colorScheme.onPrimaryContainer;
     final numberOfExpiredItems = fridge.getExpiredItems();
 
     if (fridge.availableItems!.isNotEmpty) {
@@ -165,7 +165,9 @@ class FridgeCard extends StatelessWidget {
 
         return Text(
           output,
-          style: const TextStyle(color: Color.fromARGB(150, 0, 0, 0)),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.85),
+          ),
         );
       },
     );
@@ -178,7 +180,7 @@ class FridgeCard extends StatelessWidget {
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          color: Theme.of(context).secondaryHeaderColor,
+          color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Row(
           children: [

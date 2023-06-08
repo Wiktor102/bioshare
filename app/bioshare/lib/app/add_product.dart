@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bioshare/models/theme_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -30,6 +31,13 @@ class _AddProductState extends State<AddProduct> {
 
   bool provideAmount = false;
   bool provideExpireDate = false;
+
+  _getToggleColor(BuildContext context) {
+    final b = Provider.of<ThemeModel>(context).brightness;
+    return b == Brightness.light
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.inversePrimary;
+  }
 
   done(BuildContext context) async {
     _formKey.currentState!.save();
@@ -175,6 +183,7 @@ class _AddProductState extends State<AddProduct> {
                   leading: const Icon(Icons.onetwothree),
                   trailing: Switch(
                     value: provideAmount,
+                    activeColor: _getToggleColor(context),
                     onChanged: (newState) => setState(() => provideAmount = newState),
                   ),
                 ),
@@ -232,6 +241,7 @@ class _AddProductState extends State<AddProduct> {
                   leading: const Icon(Icons.calendar_month),
                   trailing: Switch(
                     value: provideExpireDate,
+                    activeColor: _getToggleColor(context),
                     onChanged: (newState) => setState(() => provideExpireDate = newState),
                   ),
                 ),
@@ -240,14 +250,20 @@ class _AddProductState extends State<AddProduct> {
                         title: const Text("Termin ważności"),
                         leading: const Icon(Icons.calendar_month),
                         trailing: expireDate == null
-                            ? ElevatedButton(
-                                onPressed: () => setExpireDate(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  foregroundColor: Colors.white,
-                                ),
-                                child: const Text("Ustaw"),
-                              )
+                            ? Selector<ThemeModel, Brightness>(
+                                selector: (context, themeProvider) => themeProvider.brightness,
+                                builder: (context, b, child) {
+                                  return ElevatedButton(
+                                    onPressed: () => setExpireDate(context),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: b == Brightness.light
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Theme.of(context).colorScheme.inversePrimary,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    child: const Text("Ustaw"),
+                                  );
+                                })
                             : Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -291,7 +307,7 @@ class _AddProductState extends State<AddProduct> {
       icon: icon != null
           ? Icon(
               icon,
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).colorScheme.primary,
             )
           : null,
       border: OutlineInputBorder(

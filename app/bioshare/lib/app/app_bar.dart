@@ -1,4 +1,3 @@
-import 'package:bioshare/models/view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
@@ -7,6 +6,11 @@ import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import './settings.dart';
+
+// model classes / providers
+import '../models/theme_model.dart';
+import '../models/view_model.dart';
 
 class CustomAppBar extends StatefulWidget {
   final String title;
@@ -74,11 +78,17 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                      child: Selector<ThemeModel, Brightness>(
+                        selector: (context, themeProvider) => themeProvider.brightness,
+                        builder: (context, b, child) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: b == Brightness.light ? Colors.white : Theme.of(context).primaryColorDark,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: child,
+                          );
+                        },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
                           child: Column(
@@ -101,7 +111,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                 child: ListTile(
                                   title: const Text("Ustawienia"),
                                   leading: const Icon(Icons.settings),
-                                  onTap: () {},
+                                  onTap: () => goToSettings(context),
                                 ),
                               ),
                               Material(
@@ -124,6 +134,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
           ),
         );
       },
+    );
+  }
+
+  goToSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const Settings()),
     );
   }
 

@@ -153,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                   clipper: Clipper(),
                   child: Container(
                     //   alignment: Alignment.bottomCenter,
-                    decoration: BoxDecoration(color: Theme.of(context).primaryColorLight),
+                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceVariant),
                   ),
                 ),
               ),
@@ -179,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                           'By korzystać z naszej aplikacji, musisz być zalogowany',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.black.withOpacity(0.7),
+                            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
                             fontWeight: FontWeight.w300,
                             fontSize: 15,
                           ),
@@ -205,10 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                                     context,
                                     labelText: "Nazwa użytkownika lub e-mail",
                                     hintText: '',
-                                    prefixIcon: Icon(
-                                      Icons.person,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
+                                    prefixIcon: Icons.person,
                                   ),
                                 ),
                                 const SizedBox(
@@ -223,10 +220,7 @@ class _LoginPageState extends State<LoginPage> {
                                     context,
                                     labelText: "Hasło",
                                     hintText: 'Wpisz swoje hasło',
-                                    prefixIcon: Icon(
-                                      Icons.lock,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
+                                    prefixIcon: Icons.lock,
                                   ),
                                 ),
                                 const SizedBox(
@@ -261,14 +255,17 @@ class _LoginPageState extends State<LoginPage> {
                           Text(
                             'Nie masz jeszcze konta?',
                             style: TextStyle(
-                              color: Colors.black.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.8),
                             ),
                           ),
                           TextButton(
                             onPressed: widget.goToSignup,
-                            child: const Text(
+                            child: Text(
                               'Załóż je',
-                              style: TextStyle(fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           )
                         ],

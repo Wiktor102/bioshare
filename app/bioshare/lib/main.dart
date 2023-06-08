@@ -7,9 +7,11 @@ import 'app/app_structure.dart';
 import "./signup.dart";
 import "./login.dart";
 
-import './models/view_model.dart' as AppViews;
+// model classes / providers
+import './models/theme_model.dart';
 import './models/fridge_model.dart';
 import './models/location_model.dart';
+import './models/view_model.dart' as AppViews;
 
 void main() async {
   runApp(
@@ -17,6 +19,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => LocationModel()),
         ChangeNotifierProvider(create: (_) => FridgeModel()),
+        ChangeNotifierProvider(create: (_) => ThemeModel()),
         ChangeNotifierProvider(create: (_) => AppViews.ViewModel()),
       ],
       child: const App(),
@@ -52,28 +55,53 @@ class _AppState extends State<App> {
     return AppStructure(goToLogin: () => setView(AppViews.View.loginView));
   }
 
+  final Color secondaryLight = const Color(0xff00ab8f);
+  final Color secondaryDark = const Color(0xff018576);
+
+  final Color surfaceVariantLight = const Color(0xffbcdefc);
+  final Color surfaceVariantDark = const Color(0xff3c81c2);
+
+  final Color surfaceTintLight = const Color(0xffbcdefc);
+  final Color surfaceTintDark = const Color(0xff2a353e);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Bio-Share',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 69, 182, 242),
-          secondary: const Color(0xff00ab8f),
-        ),
-        useMaterial3: true,
+    return Selector<ThemeModel, Brightness>(
+      selector: (context, themeProvider) => themeProvider.brightness,
+      builder: (context, b, child) {
+        return MaterialApp(
+          title: 'Bio-Share',
+          theme: ThemeData(
+            primaryColorDark: const Color(0xff2a353e),
+            secondaryHeaderColor: b == Brightness.light ? null : const Color(0xff415263),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 69, 182, 242),
+              secondary: b == Brightness.light ? secondaryLight : secondaryDark,
+              surfaceVariant: b == Brightness.light ? surfaceVariantLight : surfaceVariantDark,
+              surfaceTint: b == Brightness.light ? surfaceTintLight : surfaceTintDark,
+
+              //   onSurface: b == Brightness.light ? null : Colors.white,
+              primary: b == Brightness.light ? null : const Color(0xff77c2eb),
+              brightness: b,
+            ),
+            useMaterial3: true,
+          ),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('pl'),
+          ],
+          home: child,
+        );
+      },
+      child: Consumer<AppViews.ViewModel>(
+        builder: (context, provider, child) {
+          return getView(provider);
+        },
       ),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('pl'),
-      ],
-      home: Consumer<AppViews.ViewModel>(builder: (context, provider, child) {
-        return getView(provider);
-      }),
     );
   }
 }

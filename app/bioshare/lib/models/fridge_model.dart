@@ -44,6 +44,7 @@ class FridgeModel extends ChangeNotifier {
       listAsFridges.add(f);
       addFridge(f);
     }
+    print(listAsFridges);
     return listAsFridges;
   }
 

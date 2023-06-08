@@ -176,8 +176,7 @@ class _SignupPageState extends State<SignupPage> {
                 child: ClipPath(
                   clipper: Clipper(),
                   child: Container(
-                    //   alignment: Alignment.bottomCenter,
-                    decoration: BoxDecoration(color: Theme.of(context).primaryColorLight),
+                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceVariant),
                   ),
                 ),
               ),
@@ -222,10 +221,7 @@ class _SignupPageState extends State<SignupPage> {
                                     context,
                                     labelText: "Email",
                                     hintText: 'Podaj swój adres e-mail',
-                                    prefixIcon: Icon(
-                                      Icons.email,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
+                                    prefixIcon: Icons.email,
                                   ),
                                 ),
                                 const SizedBox(
@@ -242,10 +238,7 @@ class _SignupPageState extends State<SignupPage> {
                                     context,
                                     labelText: "Nazwa użytkownika",
                                     hintText: 'Nazwa będzie publiczna',
-                                    prefixIcon: Icon(
-                                      Icons.person,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
+                                    prefixIcon: Icons.person,
                                   ),
                                 ),
                                 const SizedBox(
@@ -265,10 +258,7 @@ class _SignupPageState extends State<SignupPage> {
                                     context,
                                     labelText: "Hasło",
                                     hintText: 'Wymyśl silne hasło',
-                                    prefixIcon: Icon(
-                                      Icons.lock,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
+                                    prefixIcon: Icons.lock,
                                   ),
                                 ),
                                 const SizedBox(
@@ -287,10 +277,7 @@ class _SignupPageState extends State<SignupPage> {
                                     context,
                                     labelText: "Powtórz hasło",
                                     hintText: 'Powtórz hasło',
-                                    prefixIcon: Icon(
-                                      Icons.lock,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
+                                    prefixIcon: Icons.lock,
                                   ),
                                 ),
                                 const SizedBox(
@@ -325,14 +312,17 @@ class _SignupPageState extends State<SignupPage> {
                           Text(
                             'Masz już konto?',
                             style: TextStyle(
-                              color: Colors.black.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
                             ),
                           ),
                           TextButton(
                             onPressed: widget.goToLogin,
-                            child: const Text(
+                            child: Text(
                               'Zaloguj się',
-                              style: TextStyle(fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           )
                         ],
