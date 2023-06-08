@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bioshare/utils/session_expired.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -44,13 +46,38 @@ class FridgeModel extends ChangeNotifier {
       listAsFridges.add(f);
       addFridge(f);
     }
-    print(listAsFridges);
+
     return listAsFridges;
   }
 
   void addItem(int id, Item newItem) {
     _getFridge(id)?.addItem(newItem);
     notifyListeners();
+  }
+
+  Future<void> deleteItem(int fridgeId, int itemId) async {
+    final Fridge? f = _getFridge(fridgeId);
+    if (f == null) return;
+
+    bool success = await f.getItem(itemId)!.delete();
+    if (success) {
+      f._availableItems!.removeWhere((Item item) => item.id == itemId);
+      notifyListeners();
+    }
+  }
+
+  setItemExpire(int fridgeId, int itemId, DateTime? newDate) async {
+    final Fridge? f = _getFridge(fridgeId);
+    if (f == null) return;
+
+    await f.getItem(itemId)!.setExpire(newDate, notifyListeners);
+  }
+
+  setItemAmount(int fridgeId, int itemId, double? newAmount) async {
+    final Fridge? f = _getFridge(fridgeId);
+    if (f == null) return;
+
+    await f.getItem(itemId)!.setAmount(newAmount, notifyListeners);
   }
 
   Future<List<Fridge>> search(String query) async {
@@ -149,17 +176,6 @@ class FridgeModel extends ChangeNotifier {
 
   Future<void> editFridgeDescription(int fridgeId, String newDescription) async {
     await _getFridge(fridgeId)?.editDescription(newDescription, notifyListeners);
-  }
-
-  Future<void> deleteItem(int fridgeId, int itemId) async {
-    final Fridge? f = _getFridge(fridgeId);
-    if (f == null) return;
-
-    bool success = await f.getItem(itemId)!.delete();
-    if (success) {
-      f._availableItems!.removeWhere((Item item) => item.id == itemId);
-      notifyListeners();
-    }
   }
 
   Future<List<Fridge>> getMyFridges() async {
@@ -390,6 +406,123 @@ class Item {
     required this.fridgeId,
     required this.expire,
   });
+
+  Future<bool> setExpire(DateTime? newExpire, VoidCallback notifyListeners) async {
+    final oldDate = expire;
+    expire = newExpire;
+    notifyListeners();
+
+    final body =
+        json.encode({"newExpireDate": newExpire != null ? DateFormat("yyyy-MM-dd").format(newExpire) : null});
+
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/item.php/$id/expire");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/item.php/$id/expire");
+    }
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      return false;
+    }
+
+    try {
+      final http.Response response = await http.patch(
+        uri,
+        body: body,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode == 403) {
+        sessionExpired(null);
+      }
+
+      if (response.statusCode != 200) {
+        expire = oldDate;
+        notifyListeners();
+
+        if (response.body == "") {
+          throw Exception(response.statusCode);
+        }
+
+        print(response.statusCode);
+        dynamic decodedResponse;
+
+        try {
+          decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        } catch (e) {
+          throw Exception(e);
+        }
+
+        throw Exception(decodedResponse["error"]);
+      }
+
+      return true;
+    } catch (e, stack) {
+      print(e);
+      print(stack);
+      return false;
+    }
+  }
+
+  Future<bool> setAmount(double? newAmount, VoidCallback notifyListeners) async {
+    final oldAmount = amount;
+    amount = newAmount;
+    notifyListeners();
+
+    final body = json.encode({"newAmount": newAmount});
+
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/item.php/$id/amount");
+    if (!kReleaseMode) {
+      uri = Uri.parse("http://192.168.1.66:4000/item.php/$id/amount");
+    }
+    String? jwt = await App.secureStorage.read(key: "jwt");
+
+    if (jwt == null) {
+      return false;
+    }
+
+    try {
+      final http.Response response = await http.patch(
+        uri,
+        body: body,
+        headers: {
+          HttpHeaders.authorizationHeader: 'Bearer $jwt',
+        },
+      );
+
+      if (response.statusCode == 403) {
+        sessionExpired(null);
+      }
+
+      if (response.statusCode != 200) {
+        amount = oldAmount;
+        notifyListeners();
+
+        if (response.body == "") {
+          throw Exception(response.statusCode);
+        }
+
+        print(response.statusCode);
+        dynamic decodedResponse;
+
+        try {
+          decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        } catch (e) {
+          throw Exception(e);
+        }
+
+        throw Exception(decodedResponse["error"]);
+      }
+
+      return true;
+    } catch (e, stack) {
+      print(e);
+      print(stack);
+      return false;
+    }
+  }
 
   Future<bool> delete() async {
     Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/item.php/$id");

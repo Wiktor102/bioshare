@@ -30,9 +30,28 @@ switch ($method) {
 			http_response_code(404);
 			exit();
 		}
+	case "PATCH":
+		if (!is_numeric($request[0]) || $inputJson == null) {
+			http_response_code(400);
+			exit();
+		}
+
+		switch ($request[1]) {
+			case "expire":
+				updateExpireDate($request[0], $inputJson->newExpireDate);
+				break;
+			case "amount":
+				updateAmount($request[0], $inputJson->newAmount);
+				break;
+			default:
+				http_response_code(404);
+				exit();
+				break;
+		}
+
 	default:
 		http_response_code(405);
-		header("Allow: GET, POST");
+		header("Allow: POST, DELETE, PATCH");
 		exit();
 }
 
@@ -114,6 +133,92 @@ function deleteItem($id)
 		);
 		http_response_code(500);
 		exit($msg);
+	}
+
+	http_response_code(200);
+	exit();
+}
+
+function updateExpireDate($id, $newDate)
+{
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "UPDATE `item` SET `expire` = ? WHERE `id` = ?;";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("si", $newDate, $id);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	if ($stmt->affected_rows == 0) {
+		http_response_code(404);
+		exit();
+	}
+
+	http_response_code(200);
+	exit();
+}
+
+function updateAmount($id, $newAmount)
+{
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "UPDATE `item` SET `amount` = ? WHERE `id` = ?;";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("si", $newAmount, $id);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	if ($stmt->affected_rows == 0) {
+		http_response_code(404);
+		exit();
 	}
 
 	http_response_code(200);

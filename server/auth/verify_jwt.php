@@ -25,6 +25,6 @@ function verifyJWT()
 		];
 	} catch (Exception $e) {
 		http_response_code(403);
-		exit($e->getMessage());
+		exit(json_encode(["error" => $e->getMessage()], JSON_UNESCAPED_UNICODE));
 	}
 }

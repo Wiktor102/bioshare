@@ -34,6 +34,7 @@ class App extends StatefulWidget {
     ),
   );
 
+  static var navigatorKey = GlobalKey<NavigatorState>();
   const App({super.key});
 
   @override
@@ -71,6 +72,7 @@ class _AppState extends State<App> {
       builder: (context, b, child) {
         return MaterialApp(
           title: 'Bio-Share',
+          navigatorKey: App.navigatorKey,
           theme: ThemeData(
             primaryColorDark: const Color(0xff2a353e),
             secondaryHeaderColor: b == Brightness.light ? null : const Color(0xff415263),

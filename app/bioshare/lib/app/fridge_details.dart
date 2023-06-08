@@ -3,6 +3,7 @@ import 'package:bioshare/common/conditional_parent_widget.dart';
 import 'package:bioshare/common/custom_card.dart';
 import 'package:bioshare/models/theme_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:intl/intl.dart';
 import 'package:map_launcher/map_launcher.dart';
@@ -85,10 +86,31 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                 leading: Icon(Icons.delete),
               ),
             ),
-            const ListTile(
-              title: Text("Edytuj"),
-              leading: Icon(Icons.edit),
+            item.amount != null
+                ? InkWell(
+                    onTap: () => editProductAmount(context, item),
+                    child: const ListTile(
+                      title: Text("Edytuj ilość"),
+                      leading: Icon(Icons.edit),
+                    ),
+                  )
+                : Container(),
+            InkWell(
+              onTap: () => editProductExpireDate(context, item),
+              child: ListTile(
+                title: Text(item.expire != null ? "Edytuj datę ważności" : "Dodaj datę ważności"),
+                leading: Icon(item.expire != null ? Icons.edit_calendar : Icons.event),
+              ),
             ),
+            item.expire != null
+                ? InkWell(
+                    onTap: () => deleteProductExpireDate(context, item),
+                    child: const ListTile(
+                      title: Text("Usuń datę ważności"),
+                      leading: Icon(Icons.event_busy),
+                    ),
+                  )
+                : Container(),
             ListTile(
               title: const Text("Zamknij"),
               leading: const Icon(Icons.close),
@@ -113,6 +135,48 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     final provider = Provider.of<FridgeModel>(context, listen: false);
     itemId ??= widget.fridge.availableItems![i!].id;
     provider.deleteItem(widget.fridge.id, itemId);
+  }
+
+  editProductExpireDate(BuildContext context, Item item) async {
+    Navigator.of(context).pop();
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: item.expire ?? DateTime.now(),
+        firstDate: DateTime.now(),
+        lastDate: DateTime(2101),
+        locale: const Locale("pl", "PL"));
+
+    if (picked == null || picked == item.expire) {
+      return;
+    }
+
+    provider.setItemExpire(widget.fridge.id, item.id, picked);
+  }
+
+  deleteProductExpireDate(BuildContext context, Item item) async {
+    Navigator.of(context).pop();
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    provider.setItemExpire(widget.fridge.id, item.id, null);
+  }
+
+  editProductAmount(BuildContext context, Item item) async {
+    Navigator.of(context).pop();
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    double? newAmount = await showDialog<double>(
+      context: context,
+      builder: (context) => DoubleDialog(dialog: "Podaj nową ilość"),
+    );
+
+    if (newAmount == null) return;
+    provider.setItemAmount(widget.fridge.id, item.id, newAmount);
+  }
+
+// Unused:
+  deleteProductAmount(BuildContext context, Item item) async {
+    Navigator.of(context).pop();
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    provider.setItemAmount(widget.fridge.id, item.id, null);
   }
 
   toggleEditDescriptionMode() {
@@ -395,7 +459,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                               padding: EdgeInsets.only(
                                 left: 15,
                                 right: 10,
-                                bottom: widget.type == FridgeDetailsType.admin && !editDescriptionMode ? 50 : 20,
+                                bottom: widget.type == FridgeDetailsType.admin && !editDescriptionMode ? 45 : 20,
                               ),
                               child: editDescriptionMode
                                   ? Column(
@@ -528,6 +592,66 @@ class Empty extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class DoubleDialog extends StatefulWidget {
+  final String dialog;
+
+  const DoubleDialog({
+    required this.dialog,
+    super.key,
+  });
+
+  @override
+  State<DoubleDialog> createState() => _DoubleDialogState();
+}
+
+class _DoubleDialogState extends State<DoubleDialog> {
+  final controller = TextEditingController();
+  bool valid = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.dialog),
+      content: TextFormField(
+        controller: controller,
+        autofocus: true,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+        ],
+        validator: (String? value) {
+          if (value == null) return null;
+          if (double.tryParse(value) == null || double.parse(value) <= 0) return "Niepoprawna wartość";
+          return null;
+        },
+        onChanged: (v) {
+          setState(() {
+            valid = !(double.tryParse(v) == null || double.parse(v) <= 0);
+          });
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            controller.clear();
+            Navigator.of(context).pop(null);
+          },
+          child: const Text("Anuluj"),
+        ),
+        TextButton(
+          onPressed: valid
+              ? () {
+                  Navigator.of(context).pop(double.parse(controller.text));
+                }
+              : null,
+          child: const Text("Potwierdź"),
+        ),
+      ],
     );
   }
 }
