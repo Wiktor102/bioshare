@@ -131,6 +131,10 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     );
   }
 
+  takeProduct(BuildContext context, int? i, int? itemId) {
+    deleteProduct(context, i, itemId);
+  }
+
   deleteProduct(BuildContext context, int? i, int? itemId) {
     final provider = Provider.of<FridgeModel>(context, listen: false);
     itemId ??= widget.fridge.availableItems![i!].id;
@@ -422,11 +426,20 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                           mainAxisAlignment: MainAxisAlignment.end,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            ElevatedButton(
-                                              onPressed: () => deleteProduct(context, i, null),
-                                              style: _getButtonStyle(context),
-                                              child: const Text("Biorę"),
-                                            ),
+                                            item.expire == null || item.expire!.isAfter(DateTime.now())
+                                                ? ElevatedButton(
+                                                    onPressed: () => takeProduct(context, i, null),
+                                                    style: _getButtonStyle(context),
+                                                    child: const Text("Biorę"),
+                                                  )
+                                                : ElevatedButton(
+                                                    onPressed: () => deleteProduct(context, i, null),
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: const Color(0xffcb2d22),
+                                                      foregroundColor: Colors.white,
+                                                    ),
+                                                    child: const Text("Usuń"),
+                                                  ),
                                             IconButton(
                                               icon: const Icon(Icons.more_vert),
                                               onPressed: () => showItemOptions(context, item),
