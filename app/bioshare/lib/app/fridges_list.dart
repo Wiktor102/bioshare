@@ -10,17 +10,19 @@ import '../utils/calc_distance.dart';
 import '../common/app_background.dart';
 import '../models/fridge_model.dart';
 
-enum FridgeListType { normal, admin }
+enum FridgeListType { normal, admin, search }
 
 class FridgesList extends StatelessWidget {
   final List<Fridge> fridges;
   final FridgeListType listType;
   final bool background;
+  final Map<int, int>? p; // matchingResultsMap -> Why p? Idk, don't ask. Just deal with it
 
   const FridgesList({
     required this.fridges,
     this.listType = FridgeListType.normal,
     this.background = true,
+    this.p,
     super.key,
   });
 
@@ -33,7 +35,11 @@ class FridgesList extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         child: ListView.separated(
           itemCount: fridges.length,
-          itemBuilder: (context, i) => FridgeCard(fridge: fridges[i], tileType: listType),
+          itemBuilder: (context, i) => FridgeCard(
+            fridge: fridges[i],
+            tileType: listType,
+            p: p?[fridges[i].id],
+          ),
           separatorBuilder: (context, index) => const SizedBox(
             height: 10,
           ),
@@ -46,10 +52,12 @@ class FridgesList extends StatelessWidget {
 class FridgeCard extends StatelessWidget {
   final Fridge fridge;
   final FridgeListType tileType;
+  final int? p;
 
   const FridgeCard({
     required this.fridge,
     required this.tileType,
+    this.p,
     super.key,
   });
 
@@ -59,7 +67,7 @@ class FridgeCard extends StatelessWidget {
         builder: (context) => FridgeDetails(
           fridge: fridge,
           provider: Provider.of<FridgeModel>(context),
-          type: tileType == FridgeListType.normal ? FridgeDetailsType.normal : FridgeDetailsType.admin,
+          type: tileType == FridgeListType.admin ? FridgeDetailsType.admin : FridgeDetailsType.normal,
         ),
       ),
     );
@@ -71,6 +79,7 @@ class FridgeCard extends StatelessWidget {
         builder: cardSubtitleBuilder,
       );
     }
+
     final timePassed =
         DateTime.now().difference(fridge.lastUpdatedItems ?? DateTime.now()) >= const Duration(minutes: 30);
 
@@ -92,21 +101,31 @@ class FridgeCard extends StatelessWidget {
     Color color = Theme.of(context).colorScheme.onPrimaryContainer;
     final numberOfExpiredItems = fridge.getExpiredItems();
 
-    if (fridge.availableItems!.isNotEmpty) {
-      message = "Liczba produktów: ${fridge.availableItems!.length}";
-      icon = Icons.info;
+    if (tileType == FridgeListType.admin) {
+      if (fridge.availableItems!.isNotEmpty) {
+        message = "Liczba produktów: ${fridge.availableItems!.length}";
+        icon = Icons.info;
+      }
+
+      if (fridge.availableItems!.isEmpty) {
+        message = "Lodówka jest pusta";
+        icon = Icons.hide_source;
+        color = Colors.orange;
+      }
+
+      if (numberOfExpiredItems > 0) {
+        message = "Przeterminowan${numberOfExpiredItems > 1 ? "e produkty" : "y produkt"}";
+        icon = Icons.warning_amber_rounded;
+        color = Colors.red;
+      }
     }
 
-    if (fridge.availableItems!.isEmpty) {
-      message = "Lodówka jest pusta";
-      icon = Icons.hide_source;
-      color = Colors.orange;
-    }
-
-    if (numberOfExpiredItems > 0) {
-      message = "Przeterminowan${numberOfExpiredItems > 1 ? "e produkty" : "y produkt"}";
-      icon = Icons.warning_amber_rounded;
-      color = Colors.red;
+    if (tileType == FridgeListType.search) {
+      // Polski jezyk trudny byc
+      int lastDigit = p! % 10;
+      bool isCase1 = [1, 2, 3, 4].contains(lastDigit);
+      message = p == 1 ? 'Znaleziono 1 produkt' : 'Znaleziono $p produkt${isCase1 ? "y" : "ów"}';
+      icon = Icons.search;
     }
 
     return Padding(

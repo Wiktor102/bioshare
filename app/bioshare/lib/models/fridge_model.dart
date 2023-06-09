@@ -80,7 +80,7 @@ class FridgeModel extends ChangeNotifier {
     await f.getItem(itemId)!.setAmount(newAmount, notifyListeners);
   }
 
-  Future<List<Fridge>> search(String query, ItemCategory? category, bool nearExpire) async {
+  Future<(List<Fridge>, Map<int, int>)> search(String query, ItemCategory? category, bool nearExpire) async {
     final String categoryString = category?.name ?? "";
     final queryString = "q=$query&category=$categoryString&nearExpire=$nearExpire";
 
@@ -91,7 +91,7 @@ class FridgeModel extends ChangeNotifier {
     String? jwt = await App.secureStorage.read(key: "jwt");
 
     if (jwt == null) {
-      return [];
+      return ([] as List<Fridge>, {} as Map<int, int>);
     }
 
     try {
@@ -103,7 +103,7 @@ class FridgeModel extends ChangeNotifier {
       );
 
       if (response.statusCode == 404) {
-        return [];
+        return ([] as List<Fridge>, {} as Map<int, int>);
       }
 
       if (response.statusCode != 200 && response.body == "") {
@@ -122,12 +122,13 @@ class FridgeModel extends ChangeNotifier {
         throw Exception(decodedResponse["error"]);
       }
 
-      print(decodedResponse);
-      return addFridgesFromApiResponse(decodedResponse);
+      Map<int, int> matchingResultsMap = {};
+      decodedResponse.forEach((f) => matchingResultsMap[f["id"]] = f["itemCount"]);
+      return (addFridgesFromApiResponse(decodedResponse), matchingResultsMap);
     } catch (e, stack) {
       print(e);
       print(stack);
-      return [];
+      return ([] as List<Fridge>, {} as Map<int, int>);
     }
   }
 

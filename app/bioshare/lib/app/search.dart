@@ -23,6 +23,7 @@ class _SearchState extends State<Search> {
   bool shortExpire = false;
   bool loadingResults = false;
   List<Fridge> fridgesToShow = [];
+  Map<int, int> matchingResultsNumber = {};
 
   // Give the user time to stop typing -> ex. if query.length == 20, we don't want to make 20 http requests
   Timer? _debounce;
@@ -54,12 +55,11 @@ class _SearchState extends State<Search> {
 
   search(BuildContext context) async {
     final provider = Provider.of<FridgeModel>(context, listen: false);
-    final list = await provider.search(query, selectedCategory, shortExpire);
+    final (list, matchingResultsNum) = await provider.search(query, selectedCategory, shortExpire);
     fridgesToShow = list.map((Fridge f) => f.id).map((id) => provider.getFridge(id)).whereType<Fridge>().toList();
-
-    setState(() {
-      loadingResults = false;
-    });
+    matchingResultsNumber = matchingResultsNum;
+    loadingResults = false;
+    setState(() {});
   }
 
   searchOrClear() {
@@ -167,7 +167,12 @@ class _SearchState extends State<Search> {
           const SizedBox(height: 10),
           Expanded(
             child: fridgesToShow.isNotEmpty && !loadingResults
-                ? FridgesList(fridges: fridgesToShow, background: false)
+                ? FridgesList(
+                    fridges: fridgesToShow,
+                    background: false,
+                    listType: FridgeListType.search,
+                    p: matchingResultsNumber,
+                  )
                 : Center(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
