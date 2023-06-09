@@ -80,10 +80,13 @@ class FridgeModel extends ChangeNotifier {
     await f.getItem(itemId)!.setAmount(newAmount, notifyListeners);
   }
 
-  Future<List<Fridge>> search(String query) async {
-    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php/search?q=$query");
+  Future<List<Fridge>> search(String query, ItemCategory? category, bool nearExpire) async {
+    final String categoryString = category?.name ?? "";
+    final queryString = "q=$query&category=$categoryString&nearExpire=$nearExpire";
+
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/fridge.php/search?$queryString");
     if (!kReleaseMode) {
-      uri = Uri.parse("http://192.168.1.66:4000/fridge.php/search?q=$query");
+      uri = Uri.parse("http://192.168.1.66:4000/fridge.php/search?$queryString");
     }
     String? jwt = await App.secureStorage.read(key: "jwt");
 
@@ -119,6 +122,7 @@ class FridgeModel extends ChangeNotifier {
         throw Exception(decodedResponse["error"]);
       }
 
+      print(decodedResponse);
       return addFridgesFromApiResponse(decodedResponse);
     } catch (e, stack) {
       print(e);
@@ -258,6 +262,7 @@ class FridgeModel extends ChangeNotifier {
         updatedItems.add(Item(
           id: int.parse(value["id"].toString()),
           name: value["name"],
+          category: ItemCategory.values.byName(value["category"].isEmpty ? "others" : value["category"]),
           amount: value["amount"] == null ? null : double.parse(value["amount"].toString()),
           unit: value["unit"],
           fridgeId: int.parse(value["fridge"].toString()),
@@ -390,10 +395,37 @@ class Fridge {
   }
 }
 
+enum ItemCategory {
+  fruits,
+  vegetables,
+  diary,
+  meat,
+  dishes,
+  others;
+
+  String toString() {
+    switch (this) {
+      case ItemCategory.fruits:
+        return "Owoce";
+      case ItemCategory.vegetables:
+        return "Warzywa";
+      case ItemCategory.diary:
+        return "Nabiał";
+      case ItemCategory.meat:
+        return "Mięso";
+      case ItemCategory.dishes:
+        return "Dania gotowe";
+      case ItemCategory.others:
+        return "Inne";
+    }
+  }
+}
+
 class Item {
   int id;
   int fridgeId;
   String name;
+  ItemCategory category;
   double? amount;
   String? unit;
   DateTime? expire;
@@ -401,6 +433,7 @@ class Item {
   Item({
     required this.id,
     required this.name,
+    required this.category,
     required this.amount,
     required this.unit,
     required this.fridgeId,

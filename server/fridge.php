@@ -295,12 +295,22 @@ function searchForFridges()
 {
 	$conn = connect();
 	$stmt = $conn->stmt_init();
-	$sql = "SELECT fridge.id AS `id`, fridge.name AS `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`, `address`, `description`, `test`, `username` AS `adminUsername`
+	$sql = "SELECT fridge.id AS `id`, fridge.name AS `name`, `admin`, ST_X(`location`) AS `lat`, ST_Y(`location`) AS `lng`,
+    `address`, `description`, `test`, `username` AS `adminUsername`, COUNT(item.id) AS `itemCount`
         FROM `fridge`
         JOIN `user` ON user.id = fridge.admin
         JOIN `item` ON item.fridge = fridge.id
-        WHERE fridge.name LIKE CONCAT(?, '%')
-        OR item.name LIKE CONCAT('%', ?, '%')
+        WHERE (
+            fridge.name LIKE CONCAT(?, '%')
+            OR item.name LIKE CONCAT('%', ?, '%')
+        )
+        AND item.category LIKE ?
+        AND (
+            0 = ?
+            OR `expire` BETWEEN CURDATE() AND CURDATE() + INTERVAL 2 DAY
+            )
+        GROUP BY fridge.id
+        HAVING COUNT(item.id) > 0
         LIMIT 15;
         ";
 
@@ -318,7 +328,10 @@ function searchForFridges()
 	}
 
 	$query = addcslashes($_GET["q"], "%_");
-	$stmt->bind_param("ss", $query, $query);
+	$category = isset($_GET["category"]) ? addcslashes($_GET["category"], "%_") : "%";
+	$nearExpire = intval(isset($_GET["nearExpire"]) ? filter_var($_GET["nearExpire"], FILTER_VALIDATE_BOOLEAN) : false);
+
+	$stmt->bind_param("sssi", $query, $query, $category, $nearExpire);
 
 	if (!$stmt->execute()) {
 		$msg = json_encode(

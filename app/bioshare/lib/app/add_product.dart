@@ -25,6 +25,7 @@ class AddProduct extends StatefulWidget {
 class _AddProductState extends State<AddProduct> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String name = "";
+  ItemCategory? category;
   double? amount;
   String? unit;
   DateTime? expireDate;
@@ -45,6 +46,7 @@ class _AddProductState extends State<AddProduct> {
 
     final String body = json.encode({
       "name": name,
+      "category": category!.name,
       "amount": amount,
       "unit": unit,
       "expire": expireDate == null ? null : DateFormat("yyyy-MM-dd").format(expireDate!),
@@ -98,6 +100,7 @@ class _AddProductState extends State<AddProduct> {
         final Item newItem = Item(
           id: decodedResponse["id"],
           name: decodedResponse["name"],
+          category: ItemCategory.values.byName(decodedResponse["category"]),
           amount: decodedResponse["amount"]?.toDouble(),
           unit: decodedResponse["unit"],
           fridgeId: decodedResponse["fridgeId"],
@@ -175,6 +178,34 @@ class _AddProductState extends State<AddProduct> {
                     labelText: "Nazwa",
                     hintText: "Wpisz nazwę produktu",
                     icon: Icons.abc,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  title: const Text("Kategoria"),
+                  leading: const Icon(Icons.category),
+                  trailing: SizedBox(
+                    width: 165,
+                    child: DropdownButtonFormField<ItemCategory>(
+                      decoration: const InputDecoration(
+                        hintText: 'Wybierz',
+                      ),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) {
+                        if (value == null) return "Wybierz kategorię";
+                        return null;
+                      },
+                      value: category,
+                      onChanged: (nc) => setState(() => category = nc),
+                      items: ItemCategory.values
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(c.toString()),
+                            ),
+                          )
+                          .toList(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

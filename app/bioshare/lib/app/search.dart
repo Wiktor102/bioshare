@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 
@@ -18,6 +19,8 @@ class Search extends StatefulWidget {
 class _SearchState extends State<Search> {
   final controller = TextEditingController();
   String query = "";
+  ItemCategory? selectedCategory;
+  bool shortExpire = false;
   bool loadingResults = false;
   List<Fridge> fridgesToShow = [];
 
@@ -36,16 +39,7 @@ class _SearchState extends State<Search> {
       query = newQuery;
     });
 
-    _debounce = Timer(const Duration(seconds: 1), () async {
-      final provider = Provider.of<FridgeModel>(context, listen: false);
-      final list = await provider.search(query);
-      fridgesToShow =
-          list.map((Fridge f) => f.id).map((id) => provider.getFridge(id)).whereType<Fridge>().toList();
-
-      setState(() {
-        loadingResults = false;
-      });
-    });
+    _debounce = Timer(const Duration(seconds: 1), () => search(context));
   }
 
   clearQuery() {
@@ -56,6 +50,24 @@ class _SearchState extends State<Search> {
     });
 
     controller.text = "";
+  }
+
+  search(BuildContext context) async {
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    final list = await provider.search(query, selectedCategory, shortExpire);
+    fridgesToShow = list.map((Fridge f) => f.id).map((id) => provider.getFridge(id)).whereType<Fridge>().toList();
+
+    setState(() {
+      loadingResults = false;
+    });
+  }
+
+  searchOrClear() {
+    if (query.isNotEmpty || selectedCategory != null || shortExpire) {
+      search(context);
+    } else {
+      clearQuery();
+    }
   }
 
   @override
@@ -71,37 +83,87 @@ class _SearchState extends State<Search> {
       child: Column(
         children: [
           Selector<ThemeModel, Brightness>(
-              selector: (context, themeProvider) => themeProvider.brightness,
-              builder: (context, b, child) {
-                return TextFormField(
-                  controller: controller,
-                  onChanged: (q) => onQueryChanged(context, q),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                  textInputAction: TextInputAction.search,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: query.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: clearQuery,
-                          )
-                        : null,
-                    floatingLabelBehavior: FloatingLabelBehavior.never,
-                    labelText: "Szukaj",
-                    hintText: "Nazwa lodówki lub produkt",
-                    filled: true,
-                    fillColor: b == Brightness.light
-                        ? Theme.of(context).primaryColorLight
-                        : Theme.of(context).primaryColorDark,
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(90.0)),
-                      borderSide: BorderSide.none,
-                    ),
+            selector: (context, themeProvider) => themeProvider.brightness,
+            builder: (context, b, child) {
+              return TextFormField(
+                controller: controller,
+                onChanged: (q) => onQueryChanged(context, q),
+                onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                textInputAction: TextInputAction.search,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: clearQuery,
+                        )
+                      : null,
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  labelText: "Szukaj",
+                  hintText: "Nazwa lodówki, produkt",
+                  filled: true,
+                  fillColor: b == Brightness.light
+                      ? Theme.of(context).primaryColorLight
+                      : Theme.of(context).primaryColorDark,
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(90.0)),
+                    borderSide: BorderSide.none,
                   ),
+                ),
+              );
+            },
+          ),
+          const Padding(
+            padding: EdgeInsets.only(top: 8, bottom: 4),
+            child: Row(
+              children: [
+                Icon(Icons.filter_alt, size: 16),
+                SizedBox(width: 5),
+                Text("Filtry"),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 36,
+            child: ListView.separated(
+              itemCount: ItemCategory.values.length + 1,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, i) {
+                if (i == 0) {
+                  return FilterChip(
+                    label: const Text("Krótka ważność"),
+                    showCheckmark: false,
+                    avatar: null,
+                    selected: shortExpire,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        shortExpire = selected;
+                      });
+
+                      searchOrClear();
+                    },
+                  );
+                }
+
+                ItemCategory currCat = ItemCategory.values[i - 1];
+                return FilterChip(
+                  label: Text(currCat.toString()),
+                  showCheckmark: false,
+                  selected: selectedCategory == currCat,
+                  onSelected: (bool selected) {
+                    setState(() {
+                      selectedCategory = selected ? currCat : null;
+                    });
+
+                    searchOrClear();
+                  },
                 );
-              }),
+              },
+              separatorBuilder: (context, index) => const SizedBox(width: 10),
+            ),
+          ),
           const SizedBox(height: 10),
           Expanded(
             child: fridgesToShow.isNotEmpty && !loadingResults
@@ -140,7 +202,9 @@ class _SearchState extends State<Search> {
                                   ],
                                 )
                               : Text(
-                                  query.isEmpty ? "Wpisz szukaną frazę" : "Nie znaleziono tego czego szukasz",
+                                  query.isEmpty && selectedCategory == null
+                                      ? "Wpisz szukaną frazę lub wybierz kategorię"
+                                      : "Nie znaleziono tego czego szukasz",
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(fontSize: 18),
                                 ),
