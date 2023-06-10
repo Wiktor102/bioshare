@@ -60,7 +60,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     super.initState();
   }
 
-  directions() async {
+  void directions() async {
     final availableMaps = await MapLauncher.installedMaps;
     await availableMaps.first.showMarker(
       coords: Coords(widget.fridge.location.latitude, widget.fridge.location.longitude),
@@ -68,7 +68,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     );
   }
 
-  showItemOptions(BuildContext context, Item item) {
+  void showItemOptions(BuildContext context, Item item) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Padding(
@@ -123,7 +123,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     );
   }
 
-  addProduct(BuildContext context) {
+  void addProduct(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -132,17 +132,79 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     );
   }
 
-  takeProduct(BuildContext context, int? i, int? itemId) {
-    deleteProduct(context, i, itemId);
+  Future<void> takeProduct(BuildContext context, int i) async {
+    final provider = Provider.of<FridgeModel>(context, listen: false);
+    final item = widget.fridge.availableItems![i];
+
+    if (item.amount == null) {
+      deleteProduct(context, i, null);
+      return;
+    }
+
+    GlobalKey<FormState> fk = GlobalKey<FormState>();
+    double takeAmount = 1;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Wybierz ilość"),
+        content: Form(
+          key: fk,
+          child: TextFormField(
+            autofocus: true,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+            ],
+            validator: (String? value) {
+              if (value == null) return null;
+              if (double.tryParse(value) == null || double.parse(value) <= 0) return "Niepoprawna wartość";
+              if (double.parse(value) < 0 || double.parse(value) > item.amount!) {
+                return "Zakres 0 - ${item.amount! % 1 == 0 ? item.amount!.toInt() : item.amount}";
+              }
+
+              return null;
+            },
+            onSaved: (v) {
+              takeAmount = double.parse(v!);
+            },
+          ),
+        ),
+        actions: [
+          Row(
+            children: [
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Anuluj")),
+              TextButton(
+                onPressed: () {
+                  deleteProduct(context, i, null);
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Biorę wszystko"),
+              ),
+              TextButton(
+                onPressed: () {
+                  if (!fk.currentState!.validate()) return;
+                  fk.currentState!.save();
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Ok"),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    provider.setItemAmount(widget.fridge.id, item.id, item.amount! - takeAmount);
   }
 
-  deleteProduct(BuildContext context, int? i, int? itemId) {
+  void deleteProduct(BuildContext context, int? i, int? itemId) {
     final provider = Provider.of<FridgeModel>(context, listen: false);
     itemId ??= widget.fridge.availableItems![i!].id;
     provider.deleteItem(widget.fridge.id, itemId);
   }
 
-  editProductExpireDate(BuildContext context, Item item) async {
+  void editProductExpireDate(BuildContext context, Item item) async {
     Navigator.of(context).pop();
     final provider = Provider.of<FridgeModel>(context, listen: false);
     final DateTime? picked = await showDatePicker(
@@ -159,18 +221,18 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     provider.setItemExpire(widget.fridge.id, item.id, picked);
   }
 
-  deleteProductExpireDate(BuildContext context, Item item) async {
+  void deleteProductExpireDate(BuildContext context, Item item) async {
     Navigator.of(context).pop();
     final provider = Provider.of<FridgeModel>(context, listen: false);
     provider.setItemExpire(widget.fridge.id, item.id, null);
   }
 
-  editProductAmount(BuildContext context, Item item) async {
+  void editProductAmount(BuildContext context, Item item) async {
     Navigator.of(context).pop();
     final provider = Provider.of<FridgeModel>(context, listen: false);
     double? newAmount = await showDialog<double>(
       context: context,
-      builder: (context) => DoubleDialog(dialog: "Podaj nową ilość"),
+      builder: (context) => const DoubleDialog(dialog: "Podaj nową ilość"),
     );
 
     if (newAmount == null) return;
@@ -178,20 +240,20 @@ class _FridgeDetailsState extends State<FridgeDetails> {
   }
 
 // Unused:
-  deleteProductAmount(BuildContext context, Item item) async {
+  void deleteProductAmount(BuildContext context, Item item) async {
     Navigator.of(context).pop();
     final provider = Provider.of<FridgeModel>(context, listen: false);
     provider.setItemAmount(widget.fridge.id, item.id, null);
   }
 
-  toggleEditDescriptionMode() {
+  void toggleEditDescriptionMode() {
     if (widget.type == FridgeDetailsType.normal) return;
     setState(() {
       editDescriptionMode = !editDescriptionMode;
     });
   }
 
-  submitDescriptionChange() {
+  void submitDescriptionChange() {
     if (editedDescription == null || editedDescription == widget.fridge.description) {
       discardDescriptionChange();
       return;
@@ -202,12 +264,12 @@ class _FridgeDetailsState extends State<FridgeDetails> {
         .then((value) => discardDescriptionChange());
   }
 
-  discardDescriptionChange() {
+  void discardDescriptionChange() {
     editedDescription = null;
     toggleEditDescriptionMode();
   }
 
-  deleteFridge(BuildContext context) async {
+  void deleteFridge(BuildContext context) async {
     if (widget.type == FridgeDetailsType.normal) return;
     bool result = false;
 
@@ -449,7 +511,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                               (item.expire == null || !expired) &&
                                                       widget.type != FridgeDetailsType.admin
                                                   ? ElevatedButton(
-                                                      onPressed: () => takeProduct(context, i, null),
+                                                      onPressed: () => takeProduct(context, i),
                                                       style: _getButtonStyle(context),
                                                       child: const Text("Biorę"),
                                                     )
