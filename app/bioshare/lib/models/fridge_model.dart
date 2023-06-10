@@ -373,7 +373,6 @@ class Fridge {
 
   void addItem(Item item) {
     _availableItems ??= [];
-    lastUpdatedItems = DateTime.now();
 
     if (_availableItems!.asMap().keys.toList().contains(item.id)) {
       return;

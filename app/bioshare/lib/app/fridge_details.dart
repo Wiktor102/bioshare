@@ -37,6 +37,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
   Future<void>? itemsFetchFuture;
   String? editedDescription;
   bool editDescriptionMode = false;
+  late DateTime lastUpdatedItems;
 
   _getButtonStyle(BuildContext context) {
     final b = Provider.of<ThemeModel>(context).brightness;
@@ -50,8 +51,8 @@ class _FridgeDetailsState extends State<FridgeDetails> {
 
   @override
   initState() {
-    final timePassed =
-        DateTime.now().difference(widget.fridge.lastUpdatedItems ?? DateTime.now()) >= const Duration(minutes: 30);
+    lastUpdatedItems = widget.fridge.lastUpdatedItems ?? DateTime.now();
+    final timePassed = DateTime.now().difference(lastUpdatedItems) >= const Duration(minutes: 30);
 
     if (widget.fridge.availableItems == null || timePassed) {
       itemsFetchFuture = widget.provider.fetchFridgeItems(widget.fridge.id);
@@ -248,6 +249,16 @@ class _FridgeDetailsState extends State<FridgeDetails> {
     }
   }
 
+  Future<void> refreshItems(BuildContext context) async {
+    final timePassed = DateTime.now().difference(lastUpdatedItems) >= const Duration(minutes: 1);
+    if (!timePassed) return;
+
+    setState(() {
+      itemsFetchFuture = widget.provider.fetchFridgeItems(widget.fridge.id);
+      widget.fridge.availableItems = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -261,296 +272,314 @@ class _FridgeDetailsState extends State<FridgeDetails> {
               title: widget.type == FridgeDetailsType.normal ? "Szczegóły" : "Zarządzaj",
             ),
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20 + 56 + 11),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  widget.type == FridgeDetailsType.normal
-                      ? CustomCard(
-                          title: "Gdzie jestem?",
-                          children: [
-                            SizedBox(
-                              height: 170,
-                              child: FlutterMap(
-                                options: MapOptions(
-                                  center: widget.fridge.location,
-                                  zoom: 15,
-                                  minZoom: 6,
-                                  maxZoom: 17,
-                                ),
-                                nonRotatedChildren: [
-                                  RichAttributionWidget(
-                                    showFlutterMapAttribution: false,
-                                    attributions: [
-                                      TextSourceAttribution(
-                                        'OpenStreetMap contributors',
-                                        onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-                                      ),
-                                    ],
+          body: RefreshIndicator(
+            onRefresh: () => refreshItems(context),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20 + 56 + 11),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    widget.type == FridgeDetailsType.normal
+                        ? CustomCard(
+                            title: "Gdzie jestem?",
+                            children: [
+                              SizedBox(
+                                height: 170,
+                                child: FlutterMap(
+                                  options: MapOptions(
+                                    center: widget.fridge.location,
+                                    zoom: 15,
+                                    minZoom: 6,
+                                    maxZoom: 17,
                                   ),
-                                ],
-                                children: [
-                                  TileLayer(
-                                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'com.example.app',
-                                  ),
-                                  MarkerLayer(
-                                    markers: [
-                                      Marker(
-                                        point: widget.fridge.location,
-                                        width: 35,
-                                        height: 35,
-                                        builder: (context) => const Image(image: AssetImage("assets/pinBlue.png")),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            widget.fridge.address != null
-                                ? Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 10, left: 15, right: 15),
-                                      child: Text(widget.fridge.address ?? ""),
-                                    ),
-                                  )
-                                : Container(),
-                            widget.fridge.test
-                                ? Align(
-                                    alignment: Alignment.bottomLeft,
-                                    child: Container(
-                                      width: MediaQuery.of(context).size.width,
-                                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                                      margin: const EdgeInsets.only(top: 10, left: 15, right: 15),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.withAlpha(160),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          const Row(
-                                            children: [
-                                              Icon(Icons.warning, size: 20),
-                                              SizedBox(width: 15),
-                                              Text(
-                                                "Lodówka nie istnieje",
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 8),
-                                            child: Text(
-                                              "Ta lodówka została stworzona wyłącznie na potrzeby testów aplikacji. Nie istnieje w rzeczywistości.",
-                                              style: TextStyle(color: Colors.black.withAlpha(130)),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : Container(),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                child: Selector<ThemeModel, Brightness>(
-                                    selector: (context, themeProvider) => themeProvider.brightness,
-                                    builder: (context, b, child) {
-                                      return ElevatedButton.icon(
-                                        onPressed: directions,
-                                        icon: const Icon(Icons.directions),
-                                        label: const Text("Prowadź"),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: b == Brightness.light
-                                              ? Theme.of(context).colorScheme.primary
-                                              : Theme.of(context).colorScheme.inversePrimary,
-                                          foregroundColor: Colors.white,
+                                  nonRotatedChildren: [
+                                    RichAttributionWidget(
+                                      showFlutterMapAttribution: false,
+                                      attributions: [
+                                        TextSourceAttribution(
+                                          'OpenStreetMap contributors',
+                                          onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
                                         ),
-                                      );
-                                    }),
+                                      ],
+                                    ),
+                                  ],
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      userAgentPackageName: 'com.example.app',
+                                    ),
+                                    MarkerLayer(
+                                      markers: [
+                                        Marker(
+                                          point: widget.fridge.location,
+                                          width: 35,
+                                          height: 35,
+                                          builder: (context) =>
+                                              const Image(image: AssetImage("assets/pinBlue.png")),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      : Container(),
-                  widget.type == FridgeDetailsType.normal ? const SizedBox(height: 20) : Container(),
-                  CustomCard(
-                    title: "Dostępne produkty",
-                    children: [
-                      ConditionalParentWidget(
-                        condition: itemsFetchFuture != null,
-                        conditionalBuilder: (Widget child) => FutureBuilder(
-                          future: itemsFetchFuture,
-                          builder: (context, AsyncSnapshot<void> snapshot) =>
-                              snapshot.connectionState == ConnectionState.waiting
-                                  ? const Center(
+                              widget.fridge.address != null
+                                  ? Align(
+                                      alignment: Alignment.centerLeft,
                                       child: Padding(
-                                        padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 20),
-                                        child: CircularProgressIndicator(),
+                                        padding: const EdgeInsets.only(top: 10, left: 15, right: 15),
+                                        child: Text(widget.fridge.address ?? ""),
                                       ),
                                     )
-                                  : child,
-                        ),
-                        child: !(widget.fridge.availableItems == null || widget.fridge.availableItems!.isEmpty)
-                            ? ExpandableListView(
-                                itemCount: widget.fridge.availableItems!.length,
-                                visibleItemCount: widget.fridge.availableItems!.length < 3
-                                    ? widget.fridge.availableItems!.length
-                                    : 3,
-                                itemBuilder: (context, i) {
-                                  final Item item = widget.fridge.availableItems![i];
-                                  return SizedBox(
-                                    height: 70,
-                                    child: Center(
-                                      child: ListTile(
-                                        contentPadding: const EdgeInsets.only(left: 20, right: 0),
-                                        title: item.amount != null
-                                            ? Text(
-                                                "${item.name} - ${item.amount! % 1 == 0 ? item.amount!.toInt() : item.amount} ${item.unit}")
-                                            : Text(item.name),
-                                        subtitle: item.expire == null
-                                            ? null
-                                            : item.expire!.isAfter(DateTime.now())
-                                                ? Text(
-                                                    "Ważne do: ${DateFormat('dd.MM.yyyy').format(item.expire!)}")
-                                                : const Text("Data ważności minęła",
-                                                    style: TextStyle(color: Colors.red)),
-                                        trailing: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          mainAxisSize: MainAxisSize.min,
+                                  : Container(),
+                              widget.fridge.test
+                                  ? Align(
+                                      alignment: Alignment.bottomLeft,
+                                      child: Container(
+                                        width: MediaQuery.of(context).size.width,
+                                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                                        margin: const EdgeInsets.only(top: 10, left: 15, right: 15),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withAlpha(160),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Column(
                                           children: [
-                                            item.expire == null || item.expire!.isAfter(DateTime.now())
-                                                ? ElevatedButton(
-                                                    onPressed: () => takeProduct(context, i, null),
-                                                    style: _getButtonStyle(context),
-                                                    child: const Text("Biorę"),
-                                                  )
-                                                : ElevatedButton(
-                                                    onPressed: () => deleteProduct(context, i, null),
-                                                    style: ElevatedButton.styleFrom(
-                                                      backgroundColor: const Color(0xffcb2d22),
-                                                      foregroundColor: Colors.white,
-                                                    ),
-                                                    child: const Text("Usuń"),
+                                            const Row(
+                                              children: [
+                                                Icon(Icons.warning, size: 20),
+                                                SizedBox(width: 15),
+                                                Text(
+                                                  "Lodówka nie istnieje",
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w600,
                                                   ),
-                                            IconButton(
-                                              icon: const Icon(Icons.more_vert),
-                                              onPressed: () => showItemOptions(context, item),
+                                                ),
+                                              ],
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 8),
+                                              child: Text(
+                                                "Ta lodówka została stworzona wyłącznie na potrzeby testów aplikacji. Nie istnieje w rzeczywistości.",
+                                                style: TextStyle(color: Colors.black.withAlpha(130)),
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ),
-                                  );
-                                },
-                                separatorBuilder: (context, index) => Divider(
-                                  color: Theme.of(context).primaryColorLight,
-                                  thickness: 1.0,
-                                  height: 0.0,
-                                ),
-                              )
-                            : Empty(addProduct),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  CustomCard(
-                    title: "Opis",
-                    children: [
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: Stack(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(
-                                left: 15,
-                                right: 10,
-                                bottom: widget.type == FridgeDetailsType.admin && !editDescriptionMode ? 45 : 20,
-                              ),
-                              child: editDescriptionMode
-                                  ? Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        TextFormField(
-                                          initialValue: widget.fridge.description,
-                                          onChanged: (newValue) => editedDescription = (newValue),
-                                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                                          validator: (value) {
-                                            if ((value?.length ?? 0) > 1000) {
-                                              return "Max. 1000 znaków";
-                                            }
-
-                                            return null;
-                                          },
-                                          maxLines: null,
-                                          decoration: InputDecoration(
-                                            labelText: "Edytuj opis",
-                                            hintText: "Nie dodano jeszcze opisu",
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                                    )
+                                  : Container(),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                  child: Selector<ThemeModel, Brightness>(
+                                      selector: (context, themeProvider) => themeProvider.brightness,
+                                      builder: (context, b, child) {
+                                        return ElevatedButton.icon(
+                                          onPressed: directions,
+                                          icon: const Icon(Icons.directions),
+                                          label: const Text("Prowadź"),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: b == Brightness.light
+                                                ? Theme.of(context).colorScheme.primary
+                                                : Theme.of(context).colorScheme.inversePrimary,
+                                            foregroundColor: Colors.white,
                                           ),
+                                        );
+                                      }),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Container(),
+                    widget.type == FridgeDetailsType.normal ? const SizedBox(height: 20) : Container(),
+                    CustomCard(
+                      title: "Dostępne produkty",
+                      children: [
+                        ConditionalParentWidget(
+                          condition: itemsFetchFuture != null,
+                          conditionalBuilder: (Widget child) => FutureBuilder(
+                            future: itemsFetchFuture,
+                            builder: (context, AsyncSnapshot<void> snapshot) =>
+                                snapshot.connectionState == ConnectionState.waiting
+                                    ? const Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 20),
+                                          child: CircularProgressIndicator(),
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 10),
-                                          child: Row(
+                                      )
+                                    : child,
+                          ),
+                          child: !(widget.fridge.availableItems == null || widget.fridge.availableItems!.isEmpty)
+                              ? ExpandableListView(
+                                  itemCount: widget.fridge.availableItems!.length,
+                                  visibleItemCount: widget.fridge.availableItems!.length < 3
+                                      ? widget.fridge.availableItems!.length
+                                      : widget.type == FridgeDetailsType.admin
+                                          ? widget.fridge.availableItems!.length
+                                          : 3,
+                                  itemBuilder: (context, i) {
+                                    final Item item = widget.fridge.availableItems![i];
+                                    return SizedBox(
+                                      height: 70,
+                                      child: Center(
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.only(left: 20, right: 0),
+                                          title: item.amount != null
+                                              ? Text(
+                                                  "${item.name} - ${item.amount! % 1 == 0 ? item.amount!.toInt() : item.amount} ${item.unit}")
+                                              : Text(item.name),
+                                          subtitle: item.expire == null
+                                              ? null
+                                              : item.expire!.isAfter(DateTime.now())
+                                                  ? Text(
+                                                      "Ważne do: ${DateFormat('dd.MM.yyyy').format(item.expire!)}")
+                                                  : const Text("Data ważności minęła",
+                                                      style: TextStyle(color: Colors.red)),
+                                          trailing: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              ElevatedButton(
-                                                onPressed: submitDescriptionChange,
-                                                style: _getButtonStyle(context),
-                                                child: const Icon(Icons.done),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              ElevatedButton(
-                                                onPressed: discardDescriptionChange,
-                                                style: _getButtonStyle(context),
-                                                child: const Icon(Icons.close),
+                                              (item.expire == null || item.expire!.isAfter(DateTime.now())) &&
+                                                      widget.type != FridgeDetailsType.admin
+                                                  ? ElevatedButton(
+                                                      onPressed: () => takeProduct(context, i, null),
+                                                      style: _getButtonStyle(context),
+                                                      child: const Text("Biorę"),
+                                                    )
+                                                  : ElevatedButton(
+                                                      onPressed: () => deleteProduct(context, i, null),
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: const Color(0xffcb2d22),
+                                                        foregroundColor: Colors.white,
+                                                      ),
+                                                      child: const Text("Usuń"),
+                                                    ),
+                                              IconButton(
+                                                icon: const Icon(Icons.more_vert),
+                                                onPressed: () => showItemOptions(context, item),
                                               ),
                                             ],
                                           ),
-                                        )
-                                      ],
-                                    )
-                                  : Text(
-                                      widget.fridge.description != null && widget.fridge.description != ""
-                                          ? widget.fridge.description!
-                                          : (widget.type == FridgeDetailsType.normal
-                                              ? "Administrator nie dodał opisu"
-                                              : "Nie dodano jeszcze opisu"),
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.85),
+                                        ),
                                       ),
-                                    ),
-                            ),
-                            widget.type == FridgeDetailsType.admin && !editDescriptionMode
-                                ? Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: IconButton(
-                                      onPressed: toggleEditDescriptionMode,
-                                      icon: const Icon(Icons.edit),
-                                    ),
-                                  )
-                                : Container(),
-                          ],
+                                    );
+                                  },
+                                  separatorBuilder: (context, index) => Divider(
+                                    color: Theme.of(context).primaryColorLight,
+                                    thickness: 1.0,
+                                    height: 0.0,
+                                  ),
+                                )
+                              : Empty(addProduct),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        widget.type == FridgeDetailsType.admin
+                            ? Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: ElevatedButton.icon(
+                                  onPressed: () => addProduct(context),
+                                  style: _getButtonStyle(context),
+                                  label: const Text("Dodaj produkt"),
+                                  icon: const Icon(Icons.add),
+                                ),
+                              )
+                            : Container(),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    CustomCard(
+                      title: "Opis",
+                      children: [
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  left: 15,
+                                  right: 10,
+                                  bottom: widget.type == FridgeDetailsType.admin && !editDescriptionMode ? 45 : 20,
+                                ),
+                                child: editDescriptionMode
+                                    ? Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          TextFormField(
+                                            initialValue: widget.fridge.description,
+                                            onChanged: (newValue) => editedDescription = (newValue),
+                                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                                            validator: (value) {
+                                              if ((value?.length ?? 0) > 1000) {
+                                                return "Max. 1000 znaków";
+                                              }
+
+                                              return null;
+                                            },
+                                            maxLines: null,
+                                            decoration: InputDecoration(
+                                              labelText: "Edytuj opis",
+                                              hintText: "Nie dodano jeszcze opisu",
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 10),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                ElevatedButton(
+                                                  onPressed: submitDescriptionChange,
+                                                  style: _getButtonStyle(context),
+                                                  child: const Icon(Icons.done),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                ElevatedButton(
+                                                  onPressed: discardDescriptionChange,
+                                                  style: _getButtonStyle(context),
+                                                  child: const Icon(Icons.close),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    : Text(
+                                        widget.fridge.description != null && widget.fridge.description != ""
+                                            ? widget.fridge.description!
+                                            : (widget.type == FridgeDetailsType.normal
+                                                ? "Administrator nie dodał opisu"
+                                                : "Nie dodano jeszcze opisu"),
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.onBackground.withOpacity(0.85),
+                                        ),
+                                      ),
+                              ),
+                              widget.type == FridgeDetailsType.admin && !editDescriptionMode
+                                  ? Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: IconButton(
+                                        onPressed: toggleEditDescriptionMode,
+                                        icon: const Icon(Icons.edit),
+                                      ),
+                                    )
+                                  : Container(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
