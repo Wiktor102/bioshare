@@ -21,3 +21,6 @@ Aplikacja korzysta z frameorku [Flutter](https://flutter.dev/), języka PHP oraz
 
 ### Framework Flutter
 Flutter to open-source'owy framework Google, umożliwiający tworzenie **interaktywnych, wydajnych i pięknych** aplikacji mobilnych. Główne zalety Fluttera to **szybkość i wydajność** dzięki własnemu silnikowi renderowania, jednokodowość dla platform Android i iOS. Flutter obsługuje również inne platformy, takie jak sieć web, windows czy linux. Dzięki temu w przyszłości aplikacja Bio-Share będzie dostępna na innych platwormach przy minimalnym wysiłku.
+
+## Uruchamianie aplikacji
+W zakładce "Releases" do pobrania dostępny jest plik Bio-Share.apk. Wystarczy go zainstalować na urządzeniu z systemem android (może być konieczne zezwolenie na instalacje aplikacji z nieznanych źródeł).
