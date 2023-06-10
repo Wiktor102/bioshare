@@ -8,3 +8,8 @@ RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
 RewriteRule ^ - [L]
 
 RewriteRule ^fridge.php$ fridge.php/$1 [L]
+
+<Files ~ "\.jwt-secret$">
+    Order allow,deny
+    Deny from all
+</Files>
