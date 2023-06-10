@@ -424,8 +424,8 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                     final Item item = widget.fridge.availableItems![i];
                                     final DateTime now = DateUtils.dateOnly(DateTime.now());
                                     final bool? isSameMoment = item.expire?.isAtSameMomentAs(now);
-                                    final bool? isAfter = item.expire?.isAfter(now);
-                                    final bool expired = item.expire == null || (isAfter! && !isSameMoment!);
+                                    final bool? isBefore = item.expire?.isBefore(now);
+                                    final bool expired = item.expire != null && (isBefore! && !isSameMoment!);
                                     return SizedBox(
                                       height: 70,
                                       child: Center(
@@ -446,7 +446,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              (item.expire == null || expired) &&
+                                              (item.expire == null || !expired) &&
                                                       widget.type != FridgeDetailsType.admin
                                                   ? ElevatedButton(
                                                       onPressed: () => takeProduct(context, i, null),
