@@ -422,6 +422,10 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                           : 3,
                                   itemBuilder: (context, i) {
                                     final Item item = widget.fridge.availableItems![i];
+                                    final DateTime now = DateUtils.dateOnly(DateTime.now());
+                                    final bool? isSameMoment = item.expire?.isAtSameMomentAs(now);
+                                    final bool? isAfter = item.expire?.isAfter(now);
+                                    final bool expired = item.expire == null || (isAfter! && !isSameMoment!);
                                     return SizedBox(
                                       height: 70,
                                       child: Center(
@@ -433,7 +437,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                               : Text(item.name),
                                           subtitle: item.expire == null
                                               ? null
-                                              : item.expire!.isAfter(DateTime.now())
+                                              : !expired
                                                   ? Text(
                                                       "Ważne do: ${DateFormat('dd.MM.yyyy').format(item.expire!)}")
                                                   : const Text("Data ważności minęła",
@@ -442,7 +446,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              (item.expire == null || item.expire!.isAfter(DateTime.now())) &&
+                                              (item.expire == null || expired) &&
                                                       widget.type != FridgeDetailsType.admin
                                                   ? ElevatedButton(
                                                       onPressed: () => takeProduct(context, i, null),
@@ -475,7 +479,7 @@ class _FridgeDetailsState extends State<FridgeDetails> {
                                 )
                               : Empty(addProduct),
                         ),
-                        widget.type == FridgeDetailsType.admin
+                        widget.type == FridgeDetailsType.admin && widget.fridge.availableItems!.isNotEmpty
                             ? Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: ElevatedButton.icon(
