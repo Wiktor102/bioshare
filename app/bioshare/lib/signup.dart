@@ -166,7 +166,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     TextStyle linkStyle = TextStyle(
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      color: Theme.of(context).colorScheme.onError,
       fontWeight: FontWeight.w600,
     );
 
@@ -368,7 +368,7 @@ class _SignupPageState extends State<SignupPage> {
                               'Zaloguj się',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context).colorScheme.onError,
                               ),
                             ),
                           )

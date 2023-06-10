@@ -264,7 +264,7 @@ class _LoginPageState extends State<LoginPage> {
                               'Załóż je',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context).colorScheme.onError,
                               ),
                             ),
                           )

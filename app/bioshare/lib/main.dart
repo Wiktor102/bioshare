@@ -83,7 +83,7 @@ class _AppState extends State<App> {
               seedColor: const Color.fromARGB(255, 69, 182, 242),
               secondary: b == Brightness.light ? secondaryLight : secondaryDark,
               surfaceVariant: b == Brightness.light ? surfaceVariantLight : surfaceVariantDark,
-              onSurfaceVariant: b == Brightness.light ? onSurfaceVariantLight : onSurfaceVariantDark,
+              onError: b == Brightness.light ? onSurfaceVariantLight : onSurfaceVariantDark,
               surfaceTint: b == Brightness.light ? surfaceTintLight : surfaceTintDark,
 
               //   onSurface: b == Brightness.light ? null : Colors.white,
