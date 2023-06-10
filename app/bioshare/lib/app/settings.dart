@@ -116,7 +116,7 @@ class _AboutAppState extends State<AboutApp> {
               Padding(
                 padding: EdgeInsets.only(bottom: 10.0, left: 15, right: 25),
                 child: Text(
-                  "Tu będzie opis aplikacji.",
+                  "Bio-Share to aplikacja mobinla na sysytem Android. Celem aplikacji jest przeciwdziałanie zmianom klmiatu poprzez ograniczenie marnowania żywności. Aplikacja jest narzędziem do zarządzania lodówkami publicznymi (miejscami do dzielenia się żywnością). W obecnym stanie aplikacja jest działającym prototypem.\n\n Aplikacja Bio-Share pozwala zarządzać zawartością lodówek. Jeśli lodówki do dzielenia się żywnością staną się popularne to będzie to miało realny wpływ na zmniejszenie produkcji żywności, a to ona wpływa w dużym stopniu na produkcje gazów cieplarnianych.",
                   style: TextStyle(color: Colors.black54),
                 ),
               )
