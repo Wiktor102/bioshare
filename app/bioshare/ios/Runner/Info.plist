@@ -63,5 +63,7 @@
         <string>here-location</string>
         <string>tomtomgo</string>
     </array>
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
 </dict>
 </plist>

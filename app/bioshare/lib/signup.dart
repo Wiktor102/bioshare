@@ -1,11 +1,16 @@
 import 'dart:convert';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:flutter/foundation.dart';
 
-import "./utils/show_popup.dart";
+// utilities
+import 'utils/pdf_api.dart';
+import "utils/show_popup.dart";
+
+// common widgets
 import "common/custom_input_decoration.dart";
+import 'common/pdv_viewer.dart';
 
 class SignupPage extends StatefulWidget {
   final Function() goToLogin;
@@ -146,8 +151,25 @@ class _SignupPageState extends State<SignupPage> {
 
   validateForm() => _formKey.currentState!.validate();
 
+  showPdf(String path, String filename, String title) async {
+    final file = await PdfApi.loadAsset(path, filename);
+
+    if (mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MyPdfViewer(pdfPath: file.path, title: title),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    TextStyle linkStyle = TextStyle(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w600,
+    );
+
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -280,8 +302,33 @@ class _SignupPageState extends State<SignupPage> {
                                     prefixIcon: Icons.lock,
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: 20,
+                                Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.85),
+                                        fontSize: 13,
+                                      ),
+                                      children: <TextSpan>[
+                                        const TextSpan(text: 'Klikając Kontynuuj zgadzasz się z '),
+                                        TextSpan(
+                                            text: 'Regulaminem',
+                                            style: linkStyle,
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () =>
+                                                  showPdf("assets/regulamin.pdf", "regulamin.pdf", "Regulamin")),
+                                        const TextSpan(text: ' i z '),
+                                        TextSpan(
+                                            text: 'Polityką prywatności',
+                                            style: linkStyle,
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () => showPdf(
+                                                  "assets/polityka.pdf", "polityka.pdf", "Polityka Prywatności")),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                                 Row(
                                   children: [
@@ -312,7 +359,7 @@ class _SignupPageState extends State<SignupPage> {
                           Text(
                             'Masz już konto?',
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.85),
                             ),
                           ),
                           TextButton(

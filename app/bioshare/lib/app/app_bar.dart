@@ -21,8 +21,8 @@ class CustomAppBar extends StatefulWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
-  String username = "";
-  String email = "";
+  String? username;
+  String? email;
 
   @override
   initState() {
@@ -32,8 +32,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
     ]).then((values) {
       if (mounted) {
         setState(() {
-          username = values[0] ?? "";
-          email = values[1] ?? "";
+          username = values[0];
+          email = values[1];
         });
       }
     });
@@ -95,12 +95,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
                             children: [
                               ListTile(
                                 leading: ProfilePicture(
-                                  name: username,
+                                  name: username!,
                                   radius: 20,
                                   fontsize: 22,
                                 ),
-                                title: Text(username),
-                                subtitle: Text(email),
+                                title: Text(username!),
+                                subtitle: Text(email!),
                               ),
                               Container(
                                 height: 3,
@@ -167,14 +167,16 @@ class _CustomAppBarState extends State<CustomAppBar> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: Text(widget.title),
       actions: [
-        IconButton(
-          onPressed: () => showProfilePopup(context),
-          icon: ProfilePicture(
-            name: username,
-            radius: 13,
-            fontsize: 14,
-          ),
-        ),
+        username != null
+            ? IconButton(
+                onPressed: () => showProfilePopup(context),
+                icon: ProfilePicture(
+                  name: username!,
+                  radius: 13,
+                  fontsize: 14,
+                ),
+              )
+            : Container(),
       ],
       centerTitle: true,
     );
