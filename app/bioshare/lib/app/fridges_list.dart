@@ -12,39 +12,78 @@ import '../models/fridge_model.dart';
 
 enum FridgeListType { normal, admin, search }
 
-class FridgesList extends StatelessWidget {
+class FridgesList extends StatefulWidget {
   final List<Fridge> fridges;
   final FridgeListType listType;
   final bool background;
-  final Map<int, int>? p; // matchingResultsMap -> Why p? Idk, don't ask. Just deal with it
-
+  final Map<int, int>? p;
   const FridgesList({
     required this.fridges,
     this.listType = FridgeListType.normal,
     this.background = true,
-    this.p,
+    this.p, // matchingResultsMap -> Why p? Idk, don't ask. Just deal with it
     super.key,
   });
 
   @override
+  State<FridgesList> createState() => _FridgesListState();
+}
+
+class _FridgesListState extends State<FridgesList> {
+  List<Fridge>? sortedFridges;
+
+  @override
+  void initState() {
+    final locationProvider = Provider.of<LocationModel>(context, listen: false).location;
+    locationProvider.then((userLocation) {
+      sortedFridges = [...widget.fridges];
+      if (userLocation == null) return;
+
+      sortedFridges!.sort((a, b) {
+        int distanceA = calculateDistance(
+          a.location.latitude,
+          a.location.longitude,
+          userLocation.latitude,
+          userLocation.longitude,
+        ).toInt();
+
+        int distanceB = calculateDistance(
+          b.location.latitude,
+          b.location.longitude,
+          userLocation.latitude,
+          userLocation.longitude,
+        ).toInt();
+
+        return distanceA - distanceB;
+      });
+
+      setState(() {});
+    });
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ConditionalParentWidget(
-      condition: background,
+      condition: widget.background,
       conditionalBuilder: (child) => AppBackground(child: child),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: ListView.separated(
-          itemCount: fridges.length,
-          itemBuilder: (context, i) => FridgeCard(
-            fridge: fridges[i],
-            tileType: listType,
-            p: p?[fridges[i].id],
-          ),
-          separatorBuilder: (context, index) => const SizedBox(
-            height: 10,
-          ),
-        ),
-      ),
+      child: sortedFridges != null
+          ? Padding(
+              padding: const EdgeInsets.all(10),
+              child: ListView.separated(
+                itemCount: sortedFridges!.length,
+                itemBuilder: (context, i) => FridgeCard(
+                  fridge: sortedFridges![i],
+                  tileType: widget.listType,
+                  p: widget.p?[sortedFridges![i].id],
+                ),
+                separatorBuilder: (context, index) => const SizedBox(
+                  height: 10,
+                ),
+              ),
+            )
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 }
