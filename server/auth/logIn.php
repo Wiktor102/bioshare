@@ -4,6 +4,7 @@ session_start();
 use Firebase\JWT\JWT;
 require_once "../vendor/autoload.php";
 require_once "../connect.php";
+require_once "./generateAccessToken.php";
 // require_once "./sendEmail.php";
 
 function main()
@@ -15,7 +16,6 @@ function main()
 	}
 
 	$mail = $credentials["mail"];
-	$loginType = str_contains($mail, "@") ? "email" : "username";
 	$userData = getUserData($mail);
 
 	$correctPasswordHash = $userData["password"];
@@ -35,7 +35,9 @@ function main()
 
 	// W przyszłości tutaj sprawdzać czy e-mail jest zweryfikowany
 
-	exit(json_encode(generateToken($userData)));
+	$at = generateAccessToken($userData);
+	$rt = generateRefreshToken($userData["id"]);
+	exit(json_encode(["accessToken" => $at, "refreshToken" => $rt]));
 }
 
 function getUserData($mail)
@@ -90,22 +92,52 @@ function getUserData($mail)
 	}
 }
 
-function generateToken($userData)
+function generateRefreshToken($userId)
 {
-	$jwtSecretKey = file_get_contents("./.jwt-secret");
-	$expirationTime = time() + 60 * 60; // 1 hour
-	$payload = [
-		"user_id" => $userData["id"], // According to the [spec](https://www.iana.org/assignments/jwt/jwt.xhtml) it should be called "sub"
-		"preferred_username" => $userData["username"],
-		"email" => $userData["email"],
-		"exp" => $expirationTime,
+	$refreshTokenPayload = [
+		"sub" => $userId,
+		"exp" => time() + 30 * 24 * 60 * 60, // 30 days expiration
 	];
 
-	$jwt = JWT::encode($payload, $jwtSecretKey, "HS256");
-	return [
-		"token" => $jwt,
-		"expiration" => $expirationTime,
-	];
+	$jwtSecretKey = file_get_contents("./.refresh-secret");
+	$refreshToken = JWT::encode($refreshTokenPayload, $jwtSecretKey, "HS256");
+	saveRefreshToken($userId, $refreshToken);
+	return $refreshToken;
+}
+
+function saveRefreshToken($userId, $refreshToken)
+{
+	$conn = connect();
+	$stmt = $conn->stmt_init();
+	$sql = "UPDATE `user` SET `refreshToken` = ? WHERE `id` = ?;";
+
+	if (!$stmt->prepare($sql)) {
+		$msg = json_encode(
+			[
+				"error" => $stmt->error,
+				"errorNumber" => $stmt->errno,
+				"type" => "sqlError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
+
+	$stmt->bind_param("si", $refreshToken, $userId);
+
+	if (!$stmt->execute()) {
+		$msg = json_encode(
+			[
+				"error" => $conn->error,
+				"errorCode" => $conn->errno,
+				"type" => "dbError",
+			],
+			JSON_UNESCAPED_UNICODE
+		);
+		http_response_code(500);
+		exit($msg);
+	}
 }
 
 main();

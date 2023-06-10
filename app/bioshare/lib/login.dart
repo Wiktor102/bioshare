@@ -82,11 +82,14 @@ class _LoginPageState extends State<LoginPage> {
       } else if (response.statusCode != 200) {
         throw Exception(decodedResponse.error);
       } else {
-        String token = decodedResponse["token"];
-        final Map<String, dynamic> decodedJWT = Jwt.parseJwt(token);
+        String accessToken = decodedResponse["accessToken"]["token"];
+        String refreshToken = decodedResponse["refreshToken"];
+
+        final Map<String, dynamic> decodedJWT = Jwt.parseJwt(accessToken);
         await App.secureStorage.write(key: "username", value: decodedJWT["preferred_username"]);
         await App.secureStorage.write(key: "email", value: decodedJWT["email"]);
-        await App.secureStorage.write(key: "jwt", value: token);
+        await App.secureStorage.write(key: "jwt", value: accessToken); // access token
+        await App.secureStorage.write(key: "refreshToken", value: refreshToken);
 
         stopwatch.stop();
         if (stopwatch.elapsedMilliseconds < 2000) {
@@ -101,10 +104,11 @@ class _LoginPageState extends State<LoginPage> {
         widget.goToApp();
         // print(decodedResponse["userId"]);
       }
-    } catch (e) {
+    } catch (e, s) {
       popupText[0] = "Wystąpił nieznany błąd";
       popupText[1] = "Przepraszamy. Proszę spróbować później.";
       print(e);
+      print(s);
     } finally {
       stopwatch.stop();
       if (stopwatch.elapsedMilliseconds < 2000) {
