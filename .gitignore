@@ -49,3 +49,4 @@ server/vendor/
 .jwt-secret
 .refresh-secret
 assetProjects/
+res/
