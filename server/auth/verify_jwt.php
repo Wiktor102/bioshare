@@ -6,12 +6,13 @@ require_once realpath(dirname(__FILE__) . "/../vendor/autoload.php");
 function verifyJWT()
 {
 	$headers = getallheaders();
-	if (!array_key_exists("Authorization", $headers)) {
+	if (!array_key_exists("Authorization", $headers) && !array_key_exists("authorization", $headers)) {
 		http_response_code(401);
+		print_r($headers);
 		exit();
 	}
 
-	$jwt = $headers["Authorization"];
+	$jwt = $headers["Authorization"] ?? $headers["authorization"];
 	$jwt = str_replace("Bearer ", "", $jwt);
 	$jwtSecretKey = file_get_contents(realpath(dirname(__FILE__) . "/.jwt-secret"));
 

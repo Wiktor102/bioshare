@@ -4,33 +4,34 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 require_once realpath(dirname(__FILE__) . "/../vendor/autoload.php");
 require_once "../connect.php";
+require_once "./generateAccessToken.php";
 
 $headers = getallheaders();
-if (!array_key_exists("Authorization", $headers)) {
+if (!array_key_exists("Authorization", $headers) && !array_key_exists("authorization", $headers)) {
 	http_response_code(401);
 	exit();
 }
 
-$jwt = $headers["Authorization"];
+$jwt = $headers["Authorization"] ?? $headers["authorization"];
 $jwt = str_replace("Bearer ", "", $jwt);
-$jwtSecretKey = file_get_contents(realpath(dirname(__FILE__) . "/.jwt-secret"));
+$jwtSecretKey = file_get_contents(realpath(dirname(__FILE__) . "/.refresh-secret"));
 
 try {
 	$decodedRefreshToken = JWT::decode($jwt, new Key($jwtSecretKey, "HS256"));
-	$correctRefreshToken = getUserRefreshToken($decodedRefreshToken->user_id); // this is is * from db
+	$correctUserInfo = getUserRefreshToken($decodedRefreshToken->sub);
 
-	if ($decodedRefreshToken != $correctRefreshToken["refresh_token"]) {
+	if ($jwt != $correctUserInfo["refreshToken"]) {
 		http_response_code(401);
 		exit();
 	}
 
 	$userData = [
-		"id" => $decodedRefreshToken->user_id,
-		"username" => $correctRefreshToken["username"],
-		"email" => $correctRefreshToken["email"],
+		"id" => $decodedRefreshToken->sub,
+		"username" => $correctUserInfo["username"],
+		"email" => $correctUserInfo["email"],
 	];
 
-	return json_encode(generateAccessToken($userData));
+	exit(json_encode(generateAccessToken($userData)));
 } catch (Exception $e) {
 	http_response_code(403);
 	exit(json_encode(["error" => $e->getMessage()], JSON_UNESCAPED_UNICODE));
@@ -76,5 +77,5 @@ function getUserRefreshToken($userId)
 		return null;
 	}
 
-	return $result->fetch_assoc()["refreshToken"];
+	return $result->fetch_assoc();
 }

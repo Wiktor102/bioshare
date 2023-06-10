@@ -53,9 +53,9 @@ class _AddProductState extends State<AddProduct> {
       "fridgeId": widget.fridgeId,
     });
 
-    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/item.php");
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/auth/getNewAccessToken.php");
     if (!kReleaseMode) {
-      uri = Uri.parse("http://192.168.1.66:4000/item.php");
+      uri = Uri.parse("http://192.168.1.66:4000/auth/getNewAccessToken.php");
     }
 
     String? jwt = await App.secureStorage.read(key: "jwt");

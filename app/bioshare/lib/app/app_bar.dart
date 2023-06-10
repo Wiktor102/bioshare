@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
@@ -7,6 +8,10 @@ import 'package:provider/provider.dart';
 
 import '../main.dart';
 import './settings.dart';
+
+// utilities
+import '../utils/refresh_access_token.dart';
+import '../utils/session_expired.dart';
 
 // model classes / providers
 import '../models/theme_model.dart';
@@ -144,21 +149,47 @@ class _CustomAppBarState extends State<CustomAppBar> {
   }
 
   logOut() async {
-    await App.secureStorage.delete(key: "jwt");
-
-    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/auth/logOut.php");
+    Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/auth/logOut.php?uid");
     if (!kReleaseMode) {
       uri = Uri.parse("http://192.168.1.66:4000/auth/logOut.php");
     }
 
-    final http.Response response = await http.get(uri);
+    String? jwt = await App.secureStorage.read(key: "jwt");
 
-    if (response.statusCode == 200) {
-      if (context.mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        Provider.of<ViewModel>(context, listen: false).goToLogin();
+    if (jwt == null) {
+      if (mounted) {
+        sessionExpired(null);
       }
+
+      return;
     }
+
+    final http.Response response = await http.get(
+      uri,
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $jwt',
+      },
+    );
+
+    if (response.statusCode == 403) {
+      await refreshAccessToken();
+      logOut();
+      return;
+    }
+
+    if (response.statusCode != 200) {
+      print("Error! #${response.statusCode}: ${response.body}");
+      sessionExpired(null);
+      return;
+    }
+
+    await App.secureStorage.delete(key: "jwt");
+
+    if (mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Provider.of<ViewModel>(context, listen: false).goToLogin();
+    }
+    return;
   }
 
   @override
