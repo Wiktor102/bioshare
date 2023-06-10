@@ -12,6 +12,9 @@ sessionExpired(BuildContext? context) async {
   Navigator.of(context).pop();
   await App.secureStorage.delete(key: "jwt");
 
+  // We can delete the refreshToken beacuse it's invalid anyway
+  await App.secureStorage.delete(key: "refreshToken");
+
   if (context.mounted) {
     Navigator.of(context).popUntil((route) => route.isFirst);
     Provider.of<ViewModel>(context, listen: false).goToLogin();

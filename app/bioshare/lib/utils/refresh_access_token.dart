@@ -6,11 +6,11 @@ import 'package:http/http.dart' as http;
 import '../main.dart';
 import './session_expired.dart';
 
-Future<void> refreshAccessToken() async {
+Future<void> refreshAccessToken({sessionExpire = true}) async {
   String? refreshToken = await App.secureStorage.read(key: "refreshToken");
 
   if (refreshToken == null) {
-    sessionExpired(null);
+    if (sessionExpire) sessionExpired(null);
     return;
   }
 
@@ -28,7 +28,7 @@ Future<void> refreshAccessToken() async {
     );
 
     if (response.statusCode == 403) {
-      sessionExpired(null);
+      if (sessionExpire) sessionExpired(null);
       return;
     }
 
@@ -52,6 +52,6 @@ Future<void> refreshAccessToken() async {
   } catch (e, s) {
     print(e);
     print(s);
-    sessionExpired(null);
+    if (sessionExpire) sessionExpired(null);
   }
 }

@@ -184,6 +184,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     }
 
     await App.secureStorage.delete(key: "jwt");
+    await App.secureStorage.delete(key: "refreshToken");
 
     if (mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);

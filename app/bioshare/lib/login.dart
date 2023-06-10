@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:bioshare/models/location_model.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,6 +8,8 @@ import 'package:jwt_decode/jwt_decode.dart';
 import 'package:provider/provider.dart';
 import "common/custom_input_decoration.dart";
 import "./utils/show_popup.dart";
+import './models/location_model.dart';
+import './utils/refresh_access_token.dart';
 
 import './common/full_screen_loader.dart';
 import './main.dart';
@@ -25,6 +27,45 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   String email = "";
   String password = "";
+
+  @override
+  void initState() {
+    (() async {
+      await refreshAccessToken(sessionExpire: false);
+      String? accessToken = await App.secureStorage.read(key: "jwt");
+      if (accessToken == null) return;
+
+      Uri uri = Uri.parse("http://bioshareapi.wiktorgolicz.pl/auth/verify_jwt.php");
+      if (!kReleaseMode) {
+        uri = Uri.parse("http://192.168.1.66:4000/auth/verify_jwt.php");
+      }
+
+      try {
+        final http.Response response = await http.get(
+          uri,
+          headers: {
+            HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          if (mounted) {
+            Provider.of<LocationModel>(context, listen: false).askForPermission();
+          }
+
+          widget.goToApp();
+        } else {
+          // That means that the access token is somehow invalid and we can delete it
+          await App.secureStorage.delete(key: "jwt");
+        }
+      } catch (e, s) {
+        print(e);
+        print(s);
+      }
+    })();
+
+    super.initState();
+  }
 
   @override
   void dispose() {
