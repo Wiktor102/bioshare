@@ -13,3 +13,8 @@ RewriteRule ^fridge.php$ fridge.php/$1 [L]
     Order allow,deny
     Deny from all
 </Files>
+
+<Files ~ "\.refresh-secret$">
+    Order allow,deny
+    Deny from all
+</Files>
