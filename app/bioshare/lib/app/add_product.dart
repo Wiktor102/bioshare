@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bioshare/models/theme_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,9 +9,15 @@ import 'package:provider/provider.dart';
 
 import '../app/app_bar.dart';
 import '../main.dart';
+
+// model classes / providers
 import '../models/fridge_model.dart';
+import '../models/theme_model.dart';
+
+// utilities
 import '../utils/session_expired.dart';
 import '../utils/show_popup.dart';
+import '../utils/refresh_access_token.dart';
 
 class AddProduct extends StatefulWidget {
   final int fridgeId;
@@ -61,7 +66,7 @@ class _AddProductState extends State<AddProduct> {
     String? jwt = await App.secureStorage.read(key: "jwt");
 
     if (jwt == null) {
-      if (context.mounted) {
+      if (mounted) {
         sessionExpired(context);
       }
 
@@ -78,8 +83,10 @@ class _AddProductState extends State<AddProduct> {
       );
 
       if (response.statusCode == 403) {
-        if (context.mounted) {
-          sessionExpired(context);
+        await refreshAccessToken();
+
+        if (mounted) {
+          done(context);
         }
         return;
       }

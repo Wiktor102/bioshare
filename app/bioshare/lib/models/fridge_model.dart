@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:bioshare/utils/session_expired.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
+import '../utils/refresh_access_token.dart';
 
 import '../main.dart';
 
@@ -102,8 +102,13 @@ class FridgeModel extends ChangeNotifier {
         },
       );
 
+      if (response.statusCode == 403) {
+        await refreshAccessToken();
+        return await search(query, category, nearExpire);
+      }
+
       if (response.statusCode == 404) {
-        return ([] as List<Fridge>, {} as Map<int, int>);
+        return (<Fridge>[], <int, int>{});
       }
 
       if (response.statusCode != 200 && response.body == "") {
@@ -128,7 +133,7 @@ class FridgeModel extends ChangeNotifier {
     } catch (e, stack) {
       print(e);
       print(stack);
-      return ([] as List<Fridge>, {} as Map<int, int>);
+      return (<Fridge>[], <int, int>{});
     }
   }
 
@@ -150,6 +155,11 @@ class FridgeModel extends ChangeNotifier {
           HttpHeaders.authorizationHeader: 'Bearer $jwt',
         },
       );
+
+      if (response.statusCode == 403) {
+        await refreshAccessToken();
+        return await deleteFridge(id);
+      }
 
       if (response.statusCode == 200) {
         _fridges.removeWhere((element) => element.id == id);
@@ -346,6 +356,12 @@ class Fridge {
         },
       );
 
+      if (response.statusCode == 403) {
+        await refreshAccessToken();
+        await editDescription(newDescription, notifyListeners);
+        return;
+      }
+
       if (response.statusCode != 200) {
         description = oldDescription;
         notifyListeners();
@@ -468,7 +484,8 @@ class Item {
       );
 
       if (response.statusCode == 403) {
-        sessionExpired(null);
+        await refreshAccessToken();
+        return await setExpire(newExpire, notifyListeners);
       }
 
       if (response.statusCode != 200) {
@@ -526,7 +543,8 @@ class Item {
       );
 
       if (response.statusCode == 403) {
-        sessionExpired(null);
+        await refreshAccessToken();
+        return await setAmount(newAmount, notifyListeners);
       }
 
       if (response.statusCode != 200) {
@@ -576,6 +594,11 @@ class Item {
           HttpHeaders.authorizationHeader: 'Bearer $jwt',
         },
       );
+
+      if (response.statusCode == 403) {
+        await refreshAccessToken();
+        return delete();
+      }
 
       if (response.statusCode != 200) {
         throw Exception("#${response.statusCode}: ${response.body}");

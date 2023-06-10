@@ -14,8 +14,9 @@ import '../common/location_picker.dart';
 
 // utilities
 import '../main.dart';
-import '../utils/session_expired.dart';
 import '../utils/show_popup.dart';
+import '../utils/session_expired.dart';
+import '../utils/refresh_access_token.dart';
 
 // model classes
 import '../models/fridge_model.dart';
@@ -98,8 +99,10 @@ class _CreateFridgeState extends State<CreateFridge> {
       );
 
       if (response.statusCode == 403) {
-        if (context.mounted) {
-          sessionExpired(context);
+        await refreshAccessToken();
+
+        if (mounted) {
+          addFridge(context);
         }
         return;
       }
