@@ -1,5 +1,5 @@
 # Bio-Share
-Bio-Share to aplikacja mobinla na sysytem Android. Celem aplikacji jest **przeciwdziałanie zmianom klmiatu poprzez ograniczenie marnowania żywności**. Aplikacja jest narzędziem do zarządzania lodówkami publicznymi (miejscami do dzielenia się żywnością).
+Bio-Share to aplikacja mobinla na sysytem Android. Celem aplikacji jest **przeciwdziałanie zmianom klmiatu poprzez ograniczenie marnowania żywności**. Aplikacja jest narzędziem do zarządzania lodówkami publicznymi (miejscami do dzielenia się żywnością). W obecnym stanie aplikacja jest działającym prototypem.
 
 ## Jaki problem rozwiązuje aplikacja?
 W wielu dużych miastach znajdują się miejsca do dzielenia się żywnością. Wiele osób jednak nie korzysta z tej możliwości. Jednym z powodów dlaczego tak się dziezje jest nie znana zawartość takich punktów. Ludzie nie chcą się fatygować do takiego punktu jeśli nie mają pewności czy znajdą tam rzeczy które potrzebują. Aplikacja Bio-Share rozwiązuje ten problem i pozwala zarządzać zawartością lodówek. Jeśli takie miejsca  staną się popularne (nie tylko dla ludzi potrzebujących) to będzie to miało realny wpływ na zmniejszenie produkcji żywności, a to ona wpływa w dużym stopniu na produkcje gazów cieplarnianych.
@@ -13,8 +13,7 @@ Aplikacja ma duży potenciał. Obecna forma to w pełni funkcjonalny prototyp. W
 * Powiadomienia dla administratora lodówki gdy minie data ważności produktu/produktów
 
 # Zagrożenia/Ryzyka aplikacji
-* Brak podmiotów dodających punkty dzielenia się żywnośćią do aplikacji
-* Osoby korzystające z lodówek mogą nie dodać/usunąć produktów z aplikacji. By rozwiązać ten problem administrator punktu ma możliwość inwentaryzacji lodówki (spisu wszystkich znajdujących się tam przedmiotów)
+* Brak podmiotów (osób/organizacji/fundacji) dodających punkty dzielenia się żywnośćią i zarządzających nimi
 
 ## Technologie
 Aplikacja korzysta z frameorku [Flutter](https://flutter.dev/), języka PHP oraz bazy danych MariaDB
