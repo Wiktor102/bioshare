@@ -11,6 +11,7 @@ Po rejestracji i zalogowaniu sie do aplikacji użytkownik może dodawać lub usu
 Aplikacja ma duży potenciał. Obecna forma to w pełni funkcjonalny prototyp. W przyszłośći planuję dodać między innymi: 
 * Weryfikację adresu e-mail,
 * Powiadomienia dla administratora lodówki gdy minie data ważności produktu/produktów
+* Możliwość dodawania zdjęć/awatarów punktów (lodówek)
 
 # Zagrożenia/Ryzyka aplikacji
 * Brak podmiotów (osób/organizacji/fundacji) dodających punkty dzielenia się żywnośćią i zarządzających nimi
